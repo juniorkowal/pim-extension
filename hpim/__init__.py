@@ -13,9 +13,3 @@ def _load_extension():
 _load_extension()
 
 from .hpim_optimize import optimize
-
-# co tutaj bedzie/powinno byc?
-# ladowanie z torch.ops.load_library i moze jakas zmiana na ladniejsze nazwy z opisami i syntaxami
-# wynik: np. hpim.matmul, tez hpim.optimize(model.eval(), operations=...) z pliku optimize.py
-# ostatecznie paczka bedzie miala: init, optimize.py i jakies pliki .so
-# hpim.optimize bedzie zamienialo forwardy w modulach rekurencyjnie ?

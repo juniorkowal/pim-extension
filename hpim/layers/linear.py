@@ -10,6 +10,5 @@ class PIMLinear(nn.Module):
         self.bias = nn.Parameter(bias if bias is not None else torch.empty((out_features)))
 
     def forward(self, x):
-        # print("Custom Linear")
         # x * A^T + b
         return add(matmul(x, transpose(self.weight)), self.bias)
