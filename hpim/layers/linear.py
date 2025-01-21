@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .ops import matmul, add, transpose
+from ..ops import matmul, add, transpose
 
 
 class PIMLinear(nn.Module):

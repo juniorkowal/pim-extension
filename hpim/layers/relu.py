@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional
-# from .ops import relu
+# from ..ops import relu
 
 
 class PIMReLU(nn.Module):

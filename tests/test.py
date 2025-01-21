@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     print(test_model1(input_tens))
 
-    switched_model = hpim.optimize(model = test_model1, layers=['linear', 'relu'], mode='patch')
+    switched_model = hpim.optimize(model = test_model1, layers=['linear', 'relu'])
 
     print(switched_model(input_tens))
     for named_module in switched_model.named_children():
