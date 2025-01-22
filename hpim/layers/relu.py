@@ -5,7 +5,7 @@ import torch.nn.functional
 
 
 class PIMReLU(nn.Module):
-    def __init__(self, inplace):
+    def __init__(self, inplace, **kwargs):
         super(PIMReLU, self).__init__()
         self.inplace = inplace
 
