@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
 import hpim
+import torch.nn.functional as F
 
-
-class TinyModel(nn.Module):
+class BaseModel(nn.Module):
     def __init__(self):
-        super(TinyModel, self).__init__()
+        super(BaseModel, self).__init__()
 
         self.linear1 = nn.Linear(100, 200)
         self.activation = nn.ReLU()
@@ -18,13 +18,12 @@ class TinyModel(nn.Module):
         x = self.linear2(x)
         x = self.softmax(x)
         return x
-    
 
-class BiggerModel(nn.Module):
+class NestedModel(nn.Module):
     def __init__(self):
-        super(BiggerModel, self).__init__()    
+        super(NestedModel, self).__init__()
 
-        self.tinymodel = TinyModel()
+        self.tinymodel = BaseModel()
         self.linear1 = nn.Linear(10, 20)
         self.activation = nn.ReLU()
 
@@ -33,23 +32,66 @@ class BiggerModel(nn.Module):
         x = self.linear1(x)
         x = self.activation(x)
         return x
-        # return x.relu()
+
+
+def test_weights_and_biases(original_model: nn.Module, opt_model: nn.Module):
+    mse_list = []
     
+    for orig_layer, opt_layer in zip(original_model.named_modules(), opt_model.named_modules()):
+        orig_name, orig_module = orig_layer
+        opt_name, opt_module = opt_layer
+
+        if hasattr(orig_module, 'weight') and hasattr(opt_module, 'weight'):
+            orig_weights = orig_module.weight.data
+            opt_weights = opt_module.weight.data
+            if not torch.allclose(orig_weights, opt_weights):
+                mse_weights = F.mse_loss(orig_weights, opt_weights)
+                mse_list.append((orig_name + ' weights', mse_weights.item()))
+
+        if hasattr(orig_module, 'bias') and hasattr(opt_module, 'bias'):
+            orig_bias = orig_module.bias.data
+            opt_bias = opt_module.bias.data
+            if not torch.allclose(orig_bias, opt_bias):
+                mse_bias = F.mse_loss(orig_bias, opt_bias)
+                mse_list.append((orig_name + ' bias', mse_bias.item()))
+
+    return mse_list
+
+def test_model_output(original_model: nn.Module, 
+                      opt_model: nn.Module, 
+                      input_tensor: torch.Tensor):
+    
+    orig_output = original_model(input_tensor)
+    opt_output = opt_model(input_tensor)
+    
+    if not torch.allclose(orig_output, opt_output):
+        mse_output = F.mse_loss(orig_output, opt_output)
+        return mse_output.item()
+    return 0.0
+    
+def test_all(original_model: nn.Module, opt_model: nn.Module):
+    input_tens = torch.rand(size=[100])
+    mse_weights_and_biases = test_weights_and_biases(original_model, opt_model)
+    if mse_weights_and_biases:
+        print("Mismatch in Weights and Biases (MSE values):")
+        for name, mse in mse_weights_and_biases:
+            print(f"{name}: MSE = {mse}")
+    else:
+        print("No mismatch in Weights and Biases.")
+
+    mse_output = test_model_output(original_model, opt_model, input_tens)
+    if mse_output > 0:
+        print(f"Mismatch in output (MSE): {mse_output}")
+    else:
+        print("No mismatch in output.")
+
 
 if __name__ == "__main__":
     print(torch.__version__)
     torch.manual_seed(0)
-    input_tens = torch.rand(size = [100])
 
-    test_model1 = TinyModel()
-    test_model2 = BiggerModel()
+    test_model = NestedModel()
+    opt_model = hpim.optimize(model=test_model, layers=['linear', 'relu'])
 
-    print(test_model2(input_tens))
-
-    switched_model = hpim.optimize(model = test_model2, layers=['linear', 'relu'])
-
-    print(switched_model(input_tens))
-    for named_module in switched_model.named_children():
-        print(named_module)
-
-
+    test_all(test_model, opt_model)
+    
