@@ -87,11 +87,14 @@ def test_all(original_model: nn.Module, opt_model: nn.Module):
 
 
 if __name__ == "__main__":
+    import copy
+
     print(torch.__version__)
     torch.manual_seed(0)
 
-    test_model = NestedModel()
+    test_model = BaseModel()
+    test_model_copy = copy.deepcopy(test_model)
     opt_model = hpim.optimize(model=test_model, layers=['linear', 'relu'])
 
-    test_all(test_model, opt_model)
+    test_all(test_model_copy, opt_model)
     
