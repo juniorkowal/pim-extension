@@ -10,7 +10,7 @@ class BaseModel(nn.Module):
         self.linear1 = nn.Linear(100, 200)
         self.activation = nn.ReLU()
         self.linear2 = nn.Linear(200, 10)
-        self.softmax = nn.Softmax(dim=0)
+        self.softmax = nn.Softmax()
 
     def forward(self, x):
         x = self.linear1(x)
@@ -70,7 +70,7 @@ def test_model_output(original_model: nn.Module,
     return 0.0
     
 def test_all(original_model: nn.Module, opt_model: nn.Module):
-    input_tens = torch.rand(size=[100])
+    input_tens = torch.rand(size=[1, 100])
     mse_weights_and_biases = test_weights_and_biases(original_model, opt_model)
     if mse_weights_and_biases:
         print("Mismatch in Weights and Biases (MSE values):")
@@ -91,10 +91,15 @@ if __name__ == "__main__":
 
     print(torch.__version__)
     torch.manual_seed(0)
+    input_tens = torch.rand(size=[1, 100])
 
     test_model = BaseModel()
-    test_model_copy = copy.deepcopy(test_model)
-    opt_model = hpim.optimize(model=test_model, layers=['linear', 'relu'])
+    print(test_model(input_tens))
+    # test_model_copy = copy.deepcopy(test_model)
+    # opt_model = hpim.optimize(model=test_model, layers=['linear', 'relu'])
 
-    test_all(test_model_copy, opt_model)
+    # test_all(test_model_copy, opt_model)
+
+    with hpim.optimize():
+        print(test_model(input_tens))
     
