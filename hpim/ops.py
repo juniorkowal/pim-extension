@@ -1,5 +1,5 @@
 import torch
 
-matmul = torch.ops.hpim.pim_matmul
-transpose = torch.ops.hpim.pim_transpose
-add = torch.ops.hpim.pim_add
+mm = torch.ops.hpim.mm
+transpose = torch.ops.hpim.transpose
+add = torch.ops.hpim.add
