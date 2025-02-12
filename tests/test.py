@@ -70,7 +70,7 @@ def test_model_output(original_model: nn.Module,
     return 0.0
     
 def test_all(original_model: nn.Module, opt_model: nn.Module):
-    input_tens = torch.rand(size=[100])
+    input_tens = torch.rand(size=[1, 100])
     mse_weights_and_biases = test_weights_and_biases(original_model, opt_model)
     if mse_weights_and_biases:
         print("Mismatch in Weights and Biases (MSE values):")
