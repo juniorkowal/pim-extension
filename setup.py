@@ -15,7 +15,7 @@ setup(
             name='hpim.hpim',
             sources=[
                 'src/extension.cpp',
-                'src/ops/matmul.cpp',
+                'src/ops/mm.cpp',
                 'src/ops/add.cpp',
                 'src/ops/transpose.cpp'
             ],
