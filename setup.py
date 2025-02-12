@@ -2,12 +2,6 @@ from setuptools import setup, find_packages
 from torch.utils.cpp_extension import CppExtension, BuildExtension
 import os
 
-PIMBLAS_PATH = os.getenv("PIMBLAS_DIR", "/root/pimblas_install")
-
-def package_data():
-    return {
-        'hpim': ['hpim.so'],
-    }
 
 setup(
     name='hpim',
@@ -18,7 +12,7 @@ setup(
             name='hpim.hpim',
             sources=[
                 'src/extension.cpp',
-                'src/ops/matmul.cpp',
+                'src/ops/mm.cpp',
                 'src/ops/add.cpp',
                 'src/ops/transpose.cpp'
             ],
@@ -28,7 +22,6 @@ setup(
             extra_compile_args=['-std=c++14'],
         ),
     ],
-    package_data=package_data(),
     cmdclass={'build_ext': BuildExtension},
     install_requires=[
         'torch',
