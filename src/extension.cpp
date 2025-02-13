@@ -15,7 +15,7 @@ TORCH_LIBRARY(hpim, m) {
 
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-    m.def("mmm", &mm, "PIM mm implementation");
+    m.def("mm", &mm, "PIM mm implementation");
     m.def("add", &add, "PIM add implementation");
     m.def("transpose", &transpose, "PIM transpose implementation");
 }

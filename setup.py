@@ -2,6 +2,9 @@ from setuptools import setup, find_packages
 from torch.utils.cpp_extension import CppExtension, BuildExtension
 import os
 
+PIMBLAS_PATH = os.getenv("PIMBLAS_DIR", "/root/pimblas_install")
+PIMBLAS_INCLUDE = os.path.join(PIMBLAS_PATH, "include")
+PIMBLAS_LIB = os.path.join(PIMBLAS_PATH, "lib")
 
 setup(
     name='hpim',
@@ -16,6 +19,12 @@ setup(
                 'src/ops/add.cpp',
                 'src/ops/transpose.cpp'
             ],
+            include_dirs=[PIMBLAS_INCLUDE],
+            library_dirs=[PIMBLAS_LIB],
+            libraries=["pimblas"],
+            extra_compile_args=['-std=c++14', '-lstdc++'],
+            runtime_library_dirs=[PIMBLAS_LIB],
+            extra_link_args=['-L' + PIMBLAS_LIB],
         ),
     ],
     cmdclass={'build_ext': BuildExtension},
