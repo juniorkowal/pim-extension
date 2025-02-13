@@ -17,11 +17,8 @@ torch::Tensor mm(const at::Tensor& a, const at::Tensor& b) {
     const float beta = 0.0f;
 
     // call sgemm
-    sgemm_wrapper("N", "N", &m, &n, &k, &alpha,
-                  a.data_ptr<float>(), &k,
-                  b.data_ptr<float>(), &n,
-                  &beta,
-                  result.data_ptr<float>(), &n);
-
+    gemm_row_maj_f(&m, &n, &k, &alpha,
+		    a.data_ptr<float>(), b.data_ptr<float>(),
+                    &beta, result.data_ptr<float>());
     return result;
 }
