@@ -9,7 +9,10 @@ PIMBLAS_LIB = os.path.join(PIMBLAS_PATH, "lib")
 setup(
     name='hpim',
     version='0.1',
-    packages=find_packages(),
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
+#    package_data={"hpim": ["*.so"]},
+#    include_package_data=True,
     ext_modules=[
         CppExtension(
             name='hpim.hpim',
@@ -19,10 +22,10 @@ setup(
                 'src/ops/add.cpp',
                 'src/ops/transpose.cpp'
             ],
-            include_dirs=[PIMBLAS_INCLUDE],
+            include_dirs=[PIMBLAS_INCLUDE, os.path.abspath("src")],
             library_dirs=[PIMBLAS_LIB],
             libraries=["pimblas"],
-            extra_compile_args=['-std=c++14', '-lstdc++'],
+            extra_compile_args=['-std=c++17', '-std=c++14', '-lstdc++'],
             runtime_library_dirs=[PIMBLAS_LIB],
             extra_link_args=['-L' + PIMBLAS_LIB],
         ),

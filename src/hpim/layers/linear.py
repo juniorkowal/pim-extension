@@ -11,4 +11,8 @@ class PIMLinear(nn.Module):
 
     def forward(self, x):
         # x * A^T + b
-        return add(mm(x, transpose(self.weight)), self.bias)
+        x_at = mm(x, transpose(self.weight))
+#        print(x_at.shape, self.bias.shape)
+#        if x_at.shape != self.bias.unsqueeze(0).shape:
+#           exit()
+        return add(x_at, self.bias.unsqueeze(0))

@@ -1,6 +1,7 @@
 #include <torch/script.h>
 #include <vector>
 #include "pimblas.h"
+#include "logging.h"
 
 
 torch::Tensor mm(const at::Tensor& a, const at::Tensor& b) {
@@ -17,8 +18,10 @@ torch::Tensor mm(const at::Tensor& a, const at::Tensor& b) {
     const float beta = 0.0f;
 
     // call sgemm
+    show_info("Invoking gemm_row_maj_f ...");
     gemm_row_maj_f(&m, &n, &k, &alpha,
 		    a.data_ptr<float>(), b.data_ptr<float>(),
                     &beta, result.data_ptr<float>());
+    show_info("gemm_row_maj_f success ...");
     return result;
 }
