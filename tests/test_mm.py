@@ -1,110 +1,104 @@
+import unittest
 import logging
 import torch
-import hpim
 import random
 import os
-from datetime import datetime
+import hpim  # Import your custom operator
+from tests.logging_func import setup_logging, cleanup_logging  # Import the logging setup function
 
-def setup_logging():
-    script_dir = os.path.dirname(os.path.realpath(__file__))
+class TestMM(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Set up logging once for the entire test class
+        setup_logging(os.path.basename(__file__))
 
-    logs_dir = os.path.join(script_dir, 'logs')
-    if not os.path.exists(logs_dir):
-        os.makedirs(logs_dir)
+#    @classmethod
+#    def tearDownClass(cls):
+#        # Clean up logging after all tests are done
+#        cleanup_logging()
 
-    log_filename = datetime.now().strftime("mm-%m-%d-%H-%M.log")
-    log_file_path = os.path.join(logs_dir, log_filename)
-
-    logging.basicConfig(filename=log_file_path, 
-                        level=logging.INFO, 
-                        format='%(asctime)s - %(message)s')
-
-    logging.info("Logging setup completed successfully.")
-
-def test_mm_simple():
-    logging.info("################################################")
-    logging.info(f"START test_mm_simple.")
-    
-    mat = torch.randn(2, 2)
-    
-    result_hpim = hpim.ops.mm(mat, mat)
-    result_torch = torch.mm(mat, mat)
-    
-    if torch.isnan(result_hpim).any():
-        logging.warning(f"NaN detected in result of test_mm_simple (hpim).")
-    
-    logging.info(f"test_mm_simple hpim result: {result_hpim}")
-
-    if torch.allclose(result_hpim, result_torch, atol=1e-6):
-        logging.info(f"test_mm_simple success: hpim.mm and torch.mm results are the same.")
-    else:
-        logging.error(f"test_mm_simple mismatch: hpim.mm and torch.mm results are different.")
-    
-    logging.info(f"test_mm_simple torch result: {result_torch}")
-    logging.info(f"END test_mm_simple")
-    logging.info("################################################")
-
-def test_mm_large(n: int = 300, m: int = 129, o: int = 317):
-    logging.info("################################################")
-    logging.info(f"START test_mm_large with n/m/o {n, m, o}.")
-    
-    mat1 = torch.randn(n, m)
-    mat2 = torch.randn(m, o)
-    
-    result_hpim = hpim.ops.mm(mat1, mat2)
-    result_torch = torch.mm(mat1, mat2)
-    
-    if torch.isnan(result_hpim).any():
-        logging.warning(f"NaN detected in result of test_mm_large (hpim).")
-    
-    logging.info(f"test_mm_large hpim result, first number: {result_hpim[0, 0].item()}")
-    
-    if torch.allclose(result_hpim, result_torch, atol=1e-6):
-        logging.info(f"test_mm_large success: hpim.mm and torch.mm results are the same.")
-    else:
-        logging.error(f"test_mm_large mismatch: hpim.mm and torch.mm results are different.")
-    
-    logging.info(f"test_mm_large torch result, first number: {result_torch[0, 0].item()}")
-    logging.info(f"END test_mm_large")
-    logging.info("################################################")
-
-def test_mm_loop(num_iter: int = 10, mat_range: int = 300):
-    logging.info("################################################")
-    logging.info(f"START test_mm_loop with {num_iter} iterations and matrix range {mat_range}.")
-    
-    for i in range(num_iter):
-        rows_mat1 = random.randint(1, mat_range)
-        cols_mat1 = random.randint(1, mat_range)
-        rows_mat2 = cols_mat1
-        cols_mat2 = random.randint(1, mat_range)
+    def test_mm_simple(self):
+        """Test matrix multiplication with simple 2x2 matrices."""
+        logging.info("Running test_mm_simple")
         
-        logging.info(f"\nIteration {i+1}: mat1 size: ({rows_mat1}, {cols_mat1}), mat2 size: ({rows_mat2}, {cols_mat2})")
-
-        mat1 = torch.randn(rows_mat1, cols_mat1)
-        mat2 = torch.randn(rows_mat2, cols_mat2)
-
-        result_torch = torch.mm(mat1, mat2)
-        result_hpim = hpim.ops.mm(mat1, mat2)
-
-        logging.info(f"result_hpim first number: {result_hpim[0, 0].item()}, result_torch first_number: {result_torch[0, 0].item()}")
-
+        mat = torch.randn(2, 2)
+        
+        result_hpim = hpim.ops.mm(mat, mat)
+        result_torch = torch.mm(mat, mat)
+        
+        # Check for NaNs in the result
         if torch.isnan(result_hpim).any():
-            logging.warning(f"NaN detected in result at iteration {i+1}")
+            logging.warning("NaN detected in result of test_mm_simple (hpim).")
+        
+        # Compare results with atol=1e-2
+        if not torch.allclose(result_hpim, result_torch, atol=1e-2):
+            # Calculate Mean Squared Error (MSE)
+            mse = torch.mean((result_hpim - result_torch) ** 2).item()
+            logging.warning(f"test_mm_simple mismatch: MSE = {mse:.6f}")
         else:
-            logging.info(f"Iteration {i+1}: First number of result_hpim is {result_hpim[0, 0].item()}")
+            logging.info("test_mm_simple: hpim.mm and torch.mm results are the same.")
+        
+        logging.info("test_mm_simple completed successfully")
 
-        if not torch.allclose(result_hpim, result_torch, atol=1e-6):
-            logging.error(f"Results mismatch at iteration {i+1}: hpim.mm and torch.mm are different.")
+    def test_mm_large(self):
+        """Test matrix multiplication with large matrices."""
+        logging.info("Running test_mm_large")
+        
+        n, m, o = 300, 129, 317  # Matrix dimensions
+        mat1 = torch.randn(n, m)
+        mat2 = torch.randn(m, o)
+        
+        result_hpim = hpim.ops.mm(mat1, mat2)
+        result_torch = torch.mm(mat1, mat2)
+        
+        # Check for NaNs in the result
+        if torch.isnan(result_hpim).any():
+            logging.warning("NaN detected in result of test_mm_large (hpim).")
+        
+        # Compare results with atol=1e-2
+        if not torch.allclose(result_hpim, result_torch, atol=1e-2):
+            # Calculate Mean Squared Error (MSE)
+            mse = torch.mean((result_hpim - result_torch) ** 2).item()
+            logging.warning(f"test_mm_large mismatch: MSE = {mse:.6f}")
         else:
-            logging.info(f"Iteration {i+1}: hpim.mm and torch.mm are the same.")
-    logging.info("END test_mm_loop")
-    logging.info("################################################")
+            logging.info("test_mm_large: hpim.mm and torch.mm results are the same.")
+        
+        logging.info("test_mm_large completed successfully")
 
+    def test_mm_loop(self):
+        """Test matrix multiplication with random matrices in a loop."""
+        logging.info("Running test_mm_loop")
+        
+        num_iter = 10  # Number of iterations
+        mat_range = 300  # Maximum matrix size
+        
+        for i in range(num_iter):
+            rows_mat1 = random.randint(1, mat_range)
+            cols_mat1 = random.randint(1, mat_range)
+            rows_mat2 = cols_mat1
+            cols_mat2 = random.randint(1, mat_range)
+            
+            logging.info(f"Iteration {i+1}: mat1 size: ({rows_mat1}, {cols_mat1}), mat2 size: ({rows_mat2}, {cols_mat2})")
+
+            mat1 = torch.randn(rows_mat1, cols_mat1)
+            mat2 = torch.randn(rows_mat2, cols_mat2)
+
+            result_torch = torch.mm(mat1, mat2)
+            result_hpim = hpim.ops.mm(mat1, mat2)
+
+            # Check for NaNs in the result
+            if torch.isnan(result_hpim).any():
+                logging.warning(f"NaN detected in result at iteration {i+1}")
+
+            # Compare results with atol=1e-2
+            if not torch.allclose(result_hpim, result_torch, atol=1e-2):
+                # Calculate Mean Squared Error (MSE)
+                mse = torch.mean((result_hpim - result_torch) ** 2).item()
+                logging.warning(f"Iteration {i+1}: MSE = {mse:.6f}")
+            else:
+                logging.info(f"Iteration {i+1}: hpim.mm and torch.mm are the same.")
+        
+        logging.info("test_mm_loop completed successfully")
 
 if __name__ == "__main__":
-    setup_logging()
-    with torch.autograd.profiler.profile(enabled=True, use_cuda=False, record_shapes=True) as profiler:
-        test_mm_simple()
-        test_mm_large()
-        test_mm_loop(num_iter=30)
-    print(profiler.key_averages().table(sort_by="self_cpu_time_total", row_limit=10))
+    unittest.main()

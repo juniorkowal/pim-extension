@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from ..ops import mm, add, transpose
+from ..ops import mm, add
 
 
 class PIMLinear(nn.Module):
@@ -11,4 +11,5 @@ class PIMLinear(nn.Module):
 
     def forward(self, x):
         # x * A^T + b
-        return add(mm(x, transpose(self.weight)), self.bias)
+        x_at = mm(x, self.weight.T)
+        return add(x_at, self.bias.unsqueeze(0))
