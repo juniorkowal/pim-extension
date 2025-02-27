@@ -5,7 +5,7 @@
 #define LOGGING
 
 #ifdef LOGGING
-#define show_info(x) std::cout << "[INFO] " << x << std::endl
+#define show_info(x) std::cout << "[CPP] [INFO] " << x << std::endl
 #else
 #define show_info(x)
 #endif

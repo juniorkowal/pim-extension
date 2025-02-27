@@ -45,8 +45,8 @@ class TestAdd(unittest.TestCase):
     def test_add_large_matrices(self):
         """Test case 3: Add large matrices (1000x1000)."""
         logging.info("Running test_add_large_matrices")
-        a = torch.randn(256,256)
-        b = torch.randn(256,256)
+        a = torch.randn(1000,1000)
+        b = torch.randn(1000,1000)
         result = hpim.ops.add(a, b)
         expected = torch.add(a, b)
         self.assertEqualWithTolerance(result, expected)

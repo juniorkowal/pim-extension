@@ -1,5 +1,5 @@
 import torch
 
 mm = torch.ops.hpim.mm
-transpose = torch.ops.hpim.transpose
+relu = torch.ops.hpim.relu
 add = torch.ops.hpim.add

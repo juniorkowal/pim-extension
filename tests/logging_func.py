@@ -22,13 +22,13 @@ def setup_logging(test_name):
     if plugin == "1": # log only to console
         logging.basicConfig(
             level=logging.DEBUG,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            format="[PYTHON] [%(levelname)s] - %(asctime)s - %(message)s",
             handlers=[logging.StreamHandler()]
         )
     else: # log to console and file
         logging.basicConfig(
             level=logging.DEBUG,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            format="[PYTHON] [%(levelname)s] - %(asctime)s - %(message)s",
             handlers=[
                 logging.FileHandler(log_file),  # Log to file
                 logging.StreamHandler()         # Log to console
