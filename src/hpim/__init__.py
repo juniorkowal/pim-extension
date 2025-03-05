@@ -1,9 +1,15 @@
 def _load_extension():
     import os
     import torch
+    import glob
 
-    lib_path = os.path.join(os.path.dirname(__file__), 'hpim.cpython-36m-x86_64-linux-gnu.so')
-    torch.ops.load_library(lib_path)
+    dir_path = os.path.dirname(__file__)
+    lib_path = glob.glob(os.path.join(dir_path, '*hpim*.so'))
+
+    if not lib_path:
+        raise FileNotFoundError("hpim.so file not found.")
+    
+    torch.ops.load_library(lib_path[0])
 
 _load_extension()
 
