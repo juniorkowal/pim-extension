@@ -25,7 +25,7 @@ setup(
             include_dirs=[PIMBLAS_INCLUDE, os.path.abspath("src")],
             library_dirs=[PIMBLAS_LIB],
             libraries=["pimblas"],
-            extra_compile_args=['-std=c++17', '-std=c++14', '-lstdc++'],
+            extra_compile_args=['-std=c++17', '-lstdc++'],
             runtime_library_dirs=[PIMBLAS_LIB],
             extra_link_args=['-L' + PIMBLAS_LIB],
         ),
