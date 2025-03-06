@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from torch.utils.cpp_extension import CppExtension, BuildExtension
 import os
 
-PIMBLAS_PATH = os.getenv("PIMBLAS_DIR", "/root/pimblas_install")
+PIMBLAS_PATH = os.getenv("PIMBLAS_DIR", "/root/projects/pimblas_install_dir")
 PIMBLAS_INCLUDE = os.path.join(PIMBLAS_PATH, "include")
 PIMBLAS_LIB = os.path.join(PIMBLAS_PATH, "lib")
 
@@ -25,7 +25,7 @@ setup(
             include_dirs=[PIMBLAS_INCLUDE, os.path.abspath("src")],
             library_dirs=[PIMBLAS_LIB],
             libraries=["pimblas"],
-            extra_compile_args=['-std=c++17', '-std=c++14', '-lstdc++'],
+            extra_compile_args=['-std=c++17', '-lstdc++'],
             runtime_library_dirs=[PIMBLAS_LIB],
             extra_link_args=['-L' + PIMBLAS_LIB],
         ),

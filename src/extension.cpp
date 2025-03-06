@@ -1,25 +1,17 @@
 #include <torch/script.h>
 #include <torch/extension.h>
 #include "logging.h"
-//#include <spdlog/spdlog.h>
 
+at::Tensor mm(const at::Tensor& self, const at::Tensor& mat2);
+at::Tensor add(const at::Tensor& self, const at::Tensor& other, const c10::Scalar& alpha=1);
+//torch::Tensor add(const at::Tensor& a, const at::Tensor& b);
+at::Tensor relu(const at::Tensor& self);
 
-torch::Tensor mm(const at::Tensor& a, const at::Tensor& b);
-torch::Tensor add(const at::Tensor& a, const at::Tensor& b);
-torch::Tensor relu(const at::Tensor& a);
-
-
-//void initialize_extension() {
-//    initialize_logging();
-//    spdlog::info("Extension initialized with logging.");
-//}
-
-
-//void initialize_extension() {
-//    initialize_logging();
-//    spdlog::info("Extension initialized with logging.");
-//}
-
+TORCH_LIBRARY_IMPL(aten, CPU, m) {
+    m.impl("add.Tensor", add);
+    m.impl("mm", mm);         
+    m.impl("relu", relu);     
+}
 
 TORCH_LIBRARY(hpim, m) {
     m.def("mm", mm);
@@ -27,14 +19,8 @@ TORCH_LIBRARY(hpim, m) {
     m.def("relu", relu);
 }
 
-
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("mm", &mm, "PIM mm implementation");
     m.def("add", &add, "PIM add implementation");
     m.def("relu", &relu, "PIM relu implementation");
 }
-
-//static auto _ = []() {
-//    initialize_extension();
-//    return 0;
-//}();
