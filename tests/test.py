@@ -10,7 +10,7 @@ class BaseModel(nn.Module):
         self.linear1 = nn.Linear(100, 200)
         self.activation = nn.ReLU()
         self.linear2 = nn.Linear(200, 10)
-        self.softmax = nn.Softmax(dim=0)
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
         x = self.linear1(x)
@@ -97,6 +97,6 @@ if __name__ == "__main__":
 
     with torch.autograd.profiler.profile(enabled=True, use_cuda=False, record_shapes=True) as profiler:
         test_all(test_model_copy, opt_model)
-        print(hpim.ops.mm(torch.rand(2,2), torch.rand(2,2)))
-#        print(opt_model(torch.rand(size=[1, 100])).shape)
+        # print(hpim.ops.mm(torch.rand(2,2), torch.rand(2,2)))
+        # print(opt_model(torch.rand(size=[1, 100])))
     print(profiler.key_averages().table(sort_by="self_cpu_time_total", row_limit=10))
