@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional
-# from ..ops import relu
+from ..ops import relu
 
 
 class PIMReLU(nn.Module):
@@ -10,4 +10,4 @@ class PIMReLU(nn.Module):
         self.inplace = inplace
 
     def forward(self, x):
-        return torch.nn.functional.relu(x, inplace=self.inplace)
+        return relu(x)

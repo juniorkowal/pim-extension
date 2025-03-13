@@ -22,7 +22,7 @@ setup(
                 'src/extension.cpp',
                 'src/ops/mm.cpp',
                 'src/ops/add.cpp',
-                'src/ops/transpose.cpp'
+                'src/ops/relu.cpp'
             ],
         ),
     ],
