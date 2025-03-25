@@ -3,20 +3,20 @@
 #include "logging.h"
 
 
-torch::Tensor mm(const at::Tensor& a, const at::Tensor& b);
-torch::Tensor add(const at::Tensor& a, const at::Tensor& b);
-torch::Tensor relu(const at::Tensor& a);
+torch::Tensor pim_mm(const at::Tensor& a, const at::Tensor& b);
+torch::Tensor pim_add(const at::Tensor& a, const at::Tensor& b);
+torch::Tensor pim_relu(const at::Tensor& a);
 
 
 TORCH_LIBRARY(hpim, m) {
-    m.def("mm", mm);
-    m.def("add", add);
-    m.def("relu", relu);
+    m.def("mm", pim_mm);
+    m.def("add", pim_add);
+    m.def("relu", pim_relu);
 }
 
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-    m.def("mm", &mm, "PIM mm implementation");
-    m.def("add", &add, "PIM add implementation");
-    m.def("relu", &relu, "PIM relu implementation");
+    m.def("pim_mm", &pim_mm, "PIM mm implementation");
+    m.def("pim_add", &pim_add, "PIM add implementation");
+    m.def("pim_relu", &pim_relu, "PIM relu implementation");
 }

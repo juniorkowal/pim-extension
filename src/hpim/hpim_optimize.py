@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from torch.fx import GraphModule, Transformer, symbolic_trace
 from torch.fx.node import Argument
 
-import hpim
+from . import ops
 
 from .layers import PIMLinear, PIMReLU
 
@@ -76,16 +76,16 @@ def switch_layers(model: nn.Module, layers: list = None):
 
 
 def relu_decomposition(x):
-    return hpim.ops.relu(x)
+    return ops.relu(x)
 
 def linear_decomposition(x, weight, bias):
-    return hpim.ops.add(hpim.ops.mm(x, weight.t().contiguous()), bias)
+    return ops.add(ops.mm(x, weight.t().contiguous()), bias)
 
 def add(input, other):
-    return hpim.ops.add(input, other)
+    return ops.add(input, other)
 
 def mm(input, other):
-    return hpim.ops.mm(other, input)
+    return ops.mm(other, input)
 
 
 decomposition_rules = {

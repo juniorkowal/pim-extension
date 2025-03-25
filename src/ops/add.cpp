@@ -26,7 +26,7 @@
 //}
 
 
-torch::Tensor add(const at::Tensor& a, const at::Tensor& b) {
+torch::Tensor pim_add(const at::Tensor& a, const at::Tensor& b) {
     std::vector<int64_t> broadcasted_shape;
     try {
         broadcasted_shape = at::infer_size(a.sizes(), b.sizes());

@@ -1,5 +1,5 @@
 import torch
 
-mm = torch.ops.hpim.mm
-relu = torch.ops.hpim.relu
-add = torch.ops.hpim.add
+mm = torch.ops.hpim.pim_mm
+relu = torch.ops.hpim.pim_relu
+add = torch.ops.hpim.pim_add
