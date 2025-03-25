@@ -10,7 +10,7 @@ class BaseModel(nn.Module):
         self.linear1 = nn.Linear(100, 200)
         self.activation = nn.ReLU()
         self.linear2 = nn.Linear(200, 10)
-        self.softmax = nn.Softmax(dim=1)
+        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, x):
         x = self.linear1(x)
