@@ -121,10 +121,11 @@ class DecomposeTransformer(Transformer):
             return decomposition_rules[module_type](*all_args, **kwargs)
         return super().call_module(target, args, kwargs)
 
-def optimize(model: nn.Module, layers: list = None, mode: str = 'graph'):
-    if mode == 'graph':
+def optimize(model: nn.Module, layers: list = None, mode: str = 'fx'):
+    assert mode in ['layers', 'fx']
+    if mode == 'fx':
         gm = torch.fx.symbolic_trace(model)
         transformed: torch.nn.Module = DecomposeTransformer(gm).transform()
         return transformed
-    else:
+    elif mode == 'layers':
         return switch_layers(model, layers)
