@@ -69,7 +69,8 @@ def switch_layers(model: nn.Module, layers: list = None):
             parent_module = model
             for part in name.split('.')[:-1]:
                 parent_module = getattr(parent_module, part)
-            
+            #print(init_params)
+            #exit()
             setattr(parent_module, name.split('.')[-1], new_layer)
 
     return model

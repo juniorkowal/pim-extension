@@ -11,5 +11,5 @@ class PIMLinear(nn.Module):
 
     def forward(self, x):
         # x * A^T + b
-        x_at = mm(x, self.weight.T)
-        return add(x_at, self.bias.unsqueeze(0))
+        x_at = mm(x.contiguous(), self.weight.T.contiguous())
+        return add(x_at, self.bias.unsqueeze(0).contiguous())
