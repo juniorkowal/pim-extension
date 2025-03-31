@@ -38,11 +38,15 @@ decomposition_rules = {
 
 
 class DecomposeTransformer(Transformer):
+    def __init__(self, decomposition_rules: Dict):
+        super().__init__()
+        self.decomposition_rules = decomposition_rules
+
     def call_function(
         self, target: "Target", args: Tuple[Argument, ...], kwargs: Dict[str, Any]
     ) -> Any:
-        if target in decomposition_rules:
-            return decomposition_rules[target](*args, **kwargs)
+        if target in self.decomposition_rules:
+            return self.decomposition_rules[target](*args, **kwargs)
         return super().call_function(target, args, kwargs)
 
     def call_module(
@@ -50,14 +54,15 @@ class DecomposeTransformer(Transformer):
     ) -> Any:
         module = self.tracer.root.get_submodule(target)
         module_type = type(module)
-        if module_type in decomposition_rules:
+        if module_type in self.decomposition_rules:
             module_params = dict(module.named_parameters()) # Extract the module's parameters dynamically
             all_args = args + tuple(module_params.values()) # Combine args and kwargs with module parameters
-            return decomposition_rules[module_type](*all_args, **kwargs)
+            return self.decomposition_rules[module_type](*all_args, **kwargs)
         return super().call_module(target, args, kwargs)
     
 
 def trace_fx(model: nn.Module) -> torch.fx.GraphModule:
     gm = torch.fx.symbolic_trace(model)
-    transformed: torch.nn.Module = DecomposeTransformer(gm).transform()
+    transformer = DecomposeTransformer(decomposition_rules)
+    transformed: torch.nn.Module = transformer(gm).transform()
     return transformed

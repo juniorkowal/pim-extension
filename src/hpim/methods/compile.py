@@ -56,7 +56,8 @@ decompositions = default_decompositions.copy()
 
 def pim_backend(gm, sample_inputs):
     def pim_compiler(gm, sample_inputs):
-        gm = DecomposeTransformer(gm).transform()
+        transformer = DecomposeTransformer(decomposition_rules)
+        gm = transformer(gm).transform()
         # print("Decomposed fx Graph in Aten IR:")
         # print(gm.graph)
         gm.recompile()

@@ -8,7 +8,7 @@ import torch.nn as nn
 # from torch.fx import GraphModule, Transformer, symbolic_trace
 # from torch.fx.node import Argument
 
-from methods import switch_layers, trace_fx, pim_compile
+from .methods import switch_layers, trace_fx, pim_compile
 
 # from . import ops
 
@@ -132,7 +132,7 @@ from methods import switch_layers, trace_fx, pim_compile
 #         return transformed
 #     elif mode == 'layers':
 #         return switch_layers(model, layers)
-from methods import switch_layers, trace_fx, pim_compile
+# from .methods import switch_layers, trace_fx, pim_compile
 
 def optimize(model: nn.Module, layers: list = None, mode: str = 'layers'):
     assert mode in ['layers', 'fx', 'compile']
