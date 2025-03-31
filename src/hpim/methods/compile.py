@@ -52,14 +52,15 @@ decompositions = default_decompositions.copy()
 #     torch.ops.aten.addmm,
 # ])
 # decompositions.update(prims_decomp)
-#decompositions = torch._decomp.get_decompositions(decompositions)
+decompositions = torch._decomp.get_decompositions(decompositions)
 
 def pim_backend(gm, sample_inputs):
     def pim_compiler(gm, sample_inputs):
-        transformer = DecomposeTransformer(decomposition_rules)
-        gm = transformer(gm).transform()
-        # print("Decomposed fx Graph in Aten IR:")
-        # print(gm.graph)
+        transformer = DecomposeTransformer(module=gm,
+                decomposition_rules=decomposition_rules)
+        gm = transformer.transform()
+        print("Decomposed fx Graph in Aten IR:")
+        print(gm.graph)
         gm.recompile()
         return gm
 

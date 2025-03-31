@@ -38,9 +38,9 @@ decomposition_rules = {
 
 
 class DecomposeTransformer(Transformer):
-    def __init__(self, decomposition_rules: Dict):
-        super().__init__()
-        self.decomposition_rules = decomposition_rules
+    def __init__(self, module: nn.Module, decomposition_rules: Dict):
+        super().__init__(module)
+        self.decomposition_rules = decomposition_rules or {}
 
     def call_function(
         self, target: "Target", args: Tuple[Argument, ...], kwargs: Dict[str, Any]
@@ -63,6 +63,6 @@ class DecomposeTransformer(Transformer):
 
 def trace_fx(model: nn.Module) -> torch.fx.GraphModule:
     gm = torch.fx.symbolic_trace(model)
-    transformer = DecomposeTransformer(decomposition_rules)
-    transformed: torch.nn.Module = transformer(gm).transform()
+    transformer = DecomposeTransformer(module=gm, decomposition_rules=decomposition_rules)
+    transformed: torch.nn.Module = transformer.transform()
     return transformed
