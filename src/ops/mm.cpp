@@ -4,7 +4,7 @@
 #include "logging.h"
 
 
-torch::Tensor mm(const at::Tensor& a, const at::Tensor& b) {
+torch::Tensor pim_mm(const at::Tensor& a, const at::Tensor& b) {
 //    TORCH_CHECK(a.dim() == 2, "Input A must be a 2D matrix");
 //    TORCH_CHECK(b.dim() == 2, "Input B must be a 2D matrix");
 
