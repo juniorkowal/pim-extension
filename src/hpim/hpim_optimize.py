@@ -2,7 +2,7 @@ import torch.nn as nn
 from .methods import switch_layers, trace_fx, pim_compile
 
 
-def optimize(model: nn.Module, mode: str = 'layers'):
+def optimize(model: nn.Module, mode: str = 'layers', *args, **kwargs):
     assert mode in ['layers', 'fx', 'compile']
     if mode == 'layers':
         return switch_layers(model)
