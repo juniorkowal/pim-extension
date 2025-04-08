@@ -6,14 +6,13 @@ import torch._dynamo
 import torch.nn as nn
 from torch import nn
 from torch._functorch.aot_autograd import aot_module_simplified
-from torch._inductor.decomposition import \
-    decompositions as default_decompositions
+from torch._inductor.decomposition import decompositions #as default_decompositions
 from torch._subclasses.fake_tensor import FakeTensorMode
 from torch.fx import GraphModule, Transformer, symbolic_trace
 from torch.fx.node import Argument
 
 import hpim
-from .fx import DecomposeTransformer
+from .fx import DecomposeModel
 
 
 def is_numeric(*args) -> bool:
@@ -43,7 +42,7 @@ decomposition_rules = {
     torch.ops.aten.relu.default: relu,
 }
 
-decompositions = default_decompositions.copy()
+# decompositions = default_decompositions.copy()
 
 # prims_decomp = torch._decomp.get_decompositions([
 #     torch.ops.aten.add,
@@ -56,9 +55,9 @@ decompositions = torch._decomp.get_decompositions(decompositions)
 
 def pim_backend(gm, sample_inputs):
     def pim_compiler(gm, sample_inputs):
-        transformer = DecomposeTransformer(module=gm,
+        decomposer = DecomposeModel(module=gm,
                 decomposition_rules=decomposition_rules)
-        gm = transformer.transform()
+        gm = decomposer.transform()
         print("Decomposed fx Graph in Aten IR:")
         print(gm.graph)
         gm.recompile()
