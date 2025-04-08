@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     test_model = BaseModel()
     test_model_copy = copy.deepcopy(test_model)
-    opt_model = hpim.optimize(model=test_model, layers=['linear', 'relu'], mode='compile')
+    opt_model = hpim.optimize(model=test_model, mode='compile')
 
     with torch.autograd.profiler.profile(enabled=True, use_cuda=False, record_shapes=True) as profiler:
         test_all(test_model_copy, opt_model)

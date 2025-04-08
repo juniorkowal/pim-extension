@@ -52,7 +52,7 @@ class TestModel(unittest.TestCase):
 
         # Create models
         original_model = BaseModel()
-        opt_model = hpim.optimize(model=original_model, layers=['linear', 'relu'])
+        opt_model = hpim.optimize(model=original_model, mode='layers')
 
         # Test weights and biases
         mse_list = []
