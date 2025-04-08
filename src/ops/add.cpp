@@ -4,28 +4,6 @@
 #include "logging.h"
 
 
-//torch::Tensor kernel_add(const at::Tensor& a, const at::Tensor& b) {
-//    show_info("Using kernel_add for tensors of the same shape.");
-//    size_t last_dim_size = a.size(-1);
-//    torch::Tensor output = torch::zeros_like(a);
-//    size_t num_elements = a.numel() / last_dim_size;
-//
-//    for (size_t i = 0; i < num_elements; ++i) {
-//        float* a_ptr = a.data_ptr<float>() + i * last_dim_size;
-//        float* b_ptr = b.data_ptr<float>() + i * last_dim_size;
-//        float* output_ptr = output.data_ptr<float>() + i * last_dim_size;
-//
-//        if (vec_add_f(a_ptr, b_ptr, output_ptr, last_dim_size) != 0) {
-//            show_info("Vector addition kernel failed in a loop.");
-//            return torch::Tensor();
-//        }
-//    }
-//
-//    show_info("kernel_add element-wise vector addition completed successfully.");
-//    return output;
-//}
-
-
 torch::Tensor pim_add(const at::Tensor& a, const at::Tensor& b) {
     std::vector<int64_t> broadcasted_shape;
     try {

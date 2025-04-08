@@ -43,14 +43,6 @@ decomposition_rules = {
 }
 
 # decompositions = default_decompositions.copy()
-
-# prims_decomp = torch._decomp.get_decompositions([
-#     torch.ops.aten.add,
-#     torch.ops.aten.expand.default,
-#     torch.ops.aten.mul,
-#     torch.ops.aten.addmm,
-# ])
-# decompositions.update(prims_decomp)
 decompositions = torch._decomp.get_decompositions(decompositions)
 
 def pim_backend(gm, sample_inputs):
@@ -74,12 +66,3 @@ def pim_backend(gm, sample_inputs):
 def pim_compile(model = nn.Module) -> torch.fx.GraphModule:
     return torch.compile(model, backend=pim_backend, dynamic=True)
 
-# cmodel = torch.compile(model, backend=pim_backend, dynamic=True)
-
-# out = cmodel(input_ids)
-# #print(out.shape, out)
-# print(model(input_ids))
-#print(torch.allclose(out, model(input_ids)))
-# print(out[0,0], model(input)[0,0])
-# explanation = torch._dynamo.explain(cmodel, input)
-# print(explanation)
