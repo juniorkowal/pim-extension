@@ -3,7 +3,7 @@ import logging
 import torch
 import random
 import os
-import hpim  # Import your custom operator
+import torch_hpim as hpim
 from tests.logging_func import setup_logging, cleanup_logging  # Import the logging setup function
 
 class TestMM(unittest.TestCase):

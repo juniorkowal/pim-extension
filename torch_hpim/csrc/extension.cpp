@@ -1,6 +1,6 @@
 #include <torch/script.h>
 #include <torch/extension.h>
-#include "logging.h"
+#include "torch_hpim/csrc/logging/logger.h"
 
 c10::Device get_custom_device();
 void set_custom_device_index(c10::DeviceIndex device_index);

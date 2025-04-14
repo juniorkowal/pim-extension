@@ -49,69 +49,69 @@ void set_custom_device_index(c10::DeviceIndex device_index) {
 }
 
 
-using openreg_ptr_t = uint64_t;
+// using openreg_ptr_t = uint64_t;
 
-// A dummy allocator for our custom device, that secretly uses the CPU
-struct OpenRegAllocator final : at::Allocator {
-  OpenRegAllocator() = default;
+// // A dummy allocator for our custom device, that secretly uses the CPU
+// struct OpenRegAllocator final : at::Allocator {
+//   OpenRegAllocator() = default;
 
-  at::DataPtr allocate(size_t nbytes) override {
-    std::cout << "OpenReg allocator: " << nbytes << std::endl;
-    py::gil_scoped_acquire acquire;
-    auto curr_device_idx = get_method("getDevice")().cast<c10::DeviceIndex>();
-    auto curr_device =
-        c10::Device(c10::DeviceType::PrivateUse1, curr_device_idx);
-    void* data = nullptr;
-    if (nbytes > 0) {
-      data = reinterpret_cast<void*>(
-          get_method("malloc")(nbytes).cast<openreg_ptr_t>());
-      TORCH_CHECK(
-          data, "Failed to allocator ", nbytes, " bytes on openreg device.");
-    }
-    return {data, data, &ReportAndDelete, curr_device};
-  }
+//   at::DataPtr allocate(size_t nbytes) override {
+//     std::cout << "OpenReg allocator: " << nbytes << std::endl;
+//     py::gil_scoped_acquire acquire;
+//     auto curr_device_idx = get_method("getDevice")().cast<c10::DeviceIndex>();
+//     auto curr_device =
+//         c10::Device(c10::DeviceType::PrivateUse1, curr_device_idx);
+//     void* data = nullptr;
+//     if (nbytes > 0) {
+//       data = reinterpret_cast<void*>(
+//           get_method("malloc")(nbytes).cast<openreg_ptr_t>());
+//       TORCH_CHECK(
+//           data, "Failed to allocator ", nbytes, " bytes on openreg device.");
+//     }
+//     return {data, data, &ReportAndDelete, curr_device};
+//   }
 
-  static void ReportAndDelete(void* ptr) {
-    if (!ptr || !Py_IsInitialized()) {
-      return;
-    }
+//   static void ReportAndDelete(void* ptr) {
+//     if (!ptr || !Py_IsInitialized()) {
+//       return;
+//     }
 
-    py::gil_scoped_acquire acquire;
+//     py::gil_scoped_acquire acquire;
 
-    PyObject *type = nullptr, *value = nullptr, *traceback = nullptr;
-    // Always stash, this will be a no-op if there is no error
-    PyErr_Fetch(&type, &value, &traceback);
+//     PyObject *type = nullptr, *value = nullptr, *traceback = nullptr;
+//     // Always stash, this will be a no-op if there is no error
+//     PyErr_Fetch(&type, &value, &traceback);
 
-    TORCH_CHECK(
-        get_method("free")(reinterpret_cast<openreg_ptr_t>(ptr)).cast<bool>(),
-        "Failed to free memory pointer at ",
-        ptr);
+//     TORCH_CHECK(
+//         get_method("free")(reinterpret_cast<openreg_ptr_t>(ptr)).cast<bool>(),
+//         "Failed to free memory pointer at ",
+//         ptr);
 
-    // If that user code raised an error, just print it without raising it
-    if (PyErr_Occurred()) {
-      PyErr_Print();
-    }
+//     // If that user code raised an error, just print it without raising it
+//     if (PyErr_Occurred()) {
+//       PyErr_Print();
+//     }
 
-    // Restore the original error
-    PyErr_Restore(type, value, traceback);
-  }
+//     // Restore the original error
+//     PyErr_Restore(type, value, traceback);
+//   }
 
-  at::DeleterFnPtr raw_deleter() const override {
-    return &ReportAndDelete;
-  }
+//   at::DeleterFnPtr raw_deleter() const override {
+//     return &ReportAndDelete;
+//   }
 
-  void copy_data(void* dest, const void* src, std::size_t count) const final {
-    py::gil_scoped_acquire acquire;
-    get_method("copy_data")(
-        reinterpret_cast<openreg_ptr_t>(dest),
-        reinterpret_cast<openreg_ptr_t>(src),
-        count);
-  }
-};
+//   void copy_data(void* dest, const void* src, std::size_t count) const final {
+//     py::gil_scoped_acquire acquire;
+//     get_method("copy_data")(
+//         reinterpret_cast<openreg_ptr_t>(dest),
+//         reinterpret_cast<openreg_ptr_t>(src),
+//         count);
+//   }
+// };
 
-// Register our dummy allocator
-static OpenRegAllocator global_openreg_alloc;
-REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &global_openreg_alloc);
+// // Register our dummy allocator
+// static OpenRegAllocator global_openreg_alloc;
+// REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &global_openreg_alloc);
 
 
 

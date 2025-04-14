@@ -1,7 +1,7 @@
 #include <torch/script.h>
 #include <vector>
 #include "pimblas.h"
-#include "logging.h"
+#include "torch_hpim/csrc/logging/logger.h"
 
 
 torch::Tensor pim_relu(const at::Tensor& a, const c10::optional<at::Tensor>& out = c10::nullopt) {

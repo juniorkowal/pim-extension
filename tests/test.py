@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import hpim
+import torch_hpim as hpim
 import torch.nn.functional as F
 
 class BaseModel(nn.Module):

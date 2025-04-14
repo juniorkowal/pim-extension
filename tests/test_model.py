@@ -2,7 +2,7 @@ import unittest
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import hpim
+import torch_hpim as hpim
 import os
 import logging
 from tests.logging_func import setup_logging, cleanup_logging

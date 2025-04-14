@@ -1,7 +1,7 @@
 import pytest
 import os
 import torch
-import hpim
+import torch_hpim
 
 
 #

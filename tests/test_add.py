@@ -1,6 +1,6 @@
 import unittest
 import logging
-import hpim
+import torch_hpim as hpim
 import torch
 import os
 from tests.logging_func import setup_logging

@@ -1,7 +1,7 @@
 #include <torch/script.h>
 #include <vector>
 #include "pimblas.h"
-#include "logging.h"
+#include "torch_hpim/csrc/logging/logger.h"
 
 // torch::Tensor pim_add(const at::Tensor& a, const at::Tensor& b) {
 //     std::vector<int64_t> broadcasted_shape;

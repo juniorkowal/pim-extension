@@ -11,9 +11,9 @@ from torch._subclasses.fake_tensor import FakeTensorMode
 from torch.fx import GraphModule, Transformer, symbolic_trace
 from torch.fx.node import Argument
 
-import hpim
+# import torch_hpim
 from .fx import DecomposeModel
-
+from .. import ops
 
 def is_numeric(*args) -> bool:
     return any(isinstance(x, Number) for x in args)
@@ -21,18 +21,18 @@ def is_numeric(*args) -> bool:
 def add(input, other, *args,**kwargs):
     if is_numeric(input, other):
         return torch.add(input, other)
-    return hpim.ops.add(input.contiguous(), other.contiguous())
+    return ops.add(input.contiguous(), other.contiguous())
 
 def relu(input, inplace=False, *args, **kwargs):
     if is_numeric(input):
         return torch.relu(input)
     out = torch.zeros_like(input)
-    return hpim.ops.relu(input.contiguous(), out)
+    return ops.relu(input.contiguous(), out)
 
 def mm(input, other, *args,**kwargs):
     if is_numeric(input, other):
         return torch.mm(input, other)
-    return hpim.ops.mm(input.contiguous(), other.contiguous())
+    return ops.mm(input.contiguous(), other.contiguous())
 
 
 decomposition_rules = {
