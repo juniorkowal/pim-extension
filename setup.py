@@ -19,6 +19,7 @@ setup(
             sources=[
                 'src/extension.cpp',
                 'src/ops/mm.cpp',
+                'src/device.cpp',
                 'src/ops/add.cpp',
                 'src/ops/relu.cpp'
             ],
