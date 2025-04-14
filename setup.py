@@ -37,3 +37,11 @@ setup(
         'numpy'
     ],
 )
+
+# def main():
+#     1. upmemsdk # to na kompilacje a tak to dac warning do inita
+#     2. libpimblas
+#     3 setup()
+
+# if __name__ == "__main__":
+#     main()
