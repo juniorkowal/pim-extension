@@ -32,9 +32,7 @@ namespace {
 } // namespace
 
 namespace at::native {
-
-//REGISTER_PRIVATEUSE1_DISPATCH(abs_stub, &abs_kernel);
-
+  //REGISTER_PRIVATEUSE1_DISPATCH(abs_stub, &abs_kernel);
 } // namespace at::native
 
 void custom_cpu_fallback(const c10::OperatorHandle& op, torch::jit::Stack* stack) {
@@ -112,8 +110,6 @@ void set_custom_device_index(c10::DeviceIndex device_index) {
 // // Register our dummy allocator
 // static OpenRegAllocator global_openreg_alloc;
 // REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &global_openreg_alloc);
-
-
 
 
 torch::Tensor privateuse_empty_memory_format(at::IntArrayRef size, c10::optional<at::ScalarType> dtype,

@@ -4,26 +4,8 @@ import torch
 import torch_hpim
 
 
-#
-#class UpmemModule:
-#        @staticmethod
-#        def is_available():
-#            return True  # Always available for demonstration purposes
-#
-#        @staticmethod
-#        def device_count():
-#               return 1  # Only one 'upmem' device
-#        @staticmethod
-#        def current_device():
-#              return 0  # Default device index
-#        @staticmethod
-#        def get_device_name(device=None):
-#               return "upmem"
-#
-
 def info(*args,**kwargs):
     print("[info] ",  *args,**kwargs)
-
 
 def get_env(name,name_default):
     n=os.getenv(name,name_default)
@@ -33,7 +15,6 @@ def get_env(name,name_default):
 def test_load_torch_show_version():
     info(torch.__version__)
     assert 1
-
 
 def test_load_hpim_show_version():
    

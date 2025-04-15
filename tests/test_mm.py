@@ -4,12 +4,11 @@ import torch
 import random
 import os
 import torch_hpim as hpim
-from tests.logging_func import setup_logging, cleanup_logging  # Import the logging setup function
+from tests.logging_func import setup_logging, cleanup_logging
 
 class TestMM(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Set up logging once for the entire test class
         setup_logging(os.path.basename(__file__))
 
 #    @classmethod
@@ -26,13 +25,10 @@ class TestMM(unittest.TestCase):
         result_hpim = hpim.ops.mm(mat, mat)
         result_torch = torch.mm(mat, mat)
         
-        # Check for NaNs in the result
         if torch.isnan(result_hpim).any():
             logging.warning("NaN detected in result of test_mm_simple (hpim).")
         
-        # Compare results with atol=1e-2
         if not torch.allclose(result_hpim, result_torch, atol=1e-2):
-            # Calculate Mean Squared Error (MSE)
             mse = torch.mean((result_hpim - result_torch) ** 2).item()
             logging.warning(f"test_mm_simple mismatch: MSE = {mse:.6f}")
         else:
@@ -44,20 +40,17 @@ class TestMM(unittest.TestCase):
         """Test matrix multiplication with large matrices."""
         logging.info("Running test_mm_large")
         
-        n, m, o = 300, 129, 317  # Matrix dimensions
+        n, m, o = 300, 129, 317
         mat1 = torch.randn(n, m)
         mat2 = torch.randn(m, o)
         
         result_hpim = hpim.ops.mm(mat1, mat2)
         result_torch = torch.mm(mat1, mat2)
         
-        # Check for NaNs in the result
         if torch.isnan(result_hpim).any():
             logging.warning("NaN detected in result of test_mm_large (hpim).")
         
-        # Compare results with atol=1e-2
         if not torch.allclose(result_hpim, result_torch, atol=1e-2):
-            # Calculate Mean Squared Error (MSE)
             mse = torch.mean((result_hpim - result_torch) ** 2).item()
             logging.warning(f"test_mm_large mismatch: MSE = {mse:.6f}")
         else:
@@ -69,8 +62,8 @@ class TestMM(unittest.TestCase):
         """Test matrix multiplication with random matrices in a loop."""
         logging.info("Running test_mm_loop")
         
-        num_iter = 10  # Number of iterations
-        mat_range = 300  # Maximum matrix size
+        num_iter = 10
+        mat_range = 300
         
         for i in range(num_iter):
             rows_mat1 = random.randint(1, mat_range)
@@ -86,13 +79,10 @@ class TestMM(unittest.TestCase):
             result_torch = torch.mm(mat1, mat2)
             result_hpim = hpim.ops.mm(mat1, mat2)
 
-            # Check for NaNs in the result
             if torch.isnan(result_hpim).any():
                 logging.warning(f"NaN detected in result at iteration {i+1}")
 
-            # Compare results with atol=1e-2
             if not torch.allclose(result_hpim, result_torch, atol=1e-2):
-                # Calculate Mean Squared Error (MSE)
                 mse = torch.mean((result_hpim - result_torch) ** 2).item()
                 logging.warning(f"Iteration {i+1}: MSE = {mse:.6f}")
             else:

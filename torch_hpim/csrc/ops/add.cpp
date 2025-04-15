@@ -3,6 +3,29 @@
 #include "pimblas.h"
 #include "torch_hpim/csrc/logging/logger.h"
 
+
+torch::Tensor pim_add(const at::Tensor& a, const at::Tensor& b) {
+    // TORCH_CHECK(a.scalar_type() == at::kFloat && b.scalar_type() == at::kFloat,
+    //            "Only float32 tensors supported");
+
+    auto common_shape = at::infer_size(a.sizes(), b.sizes());
+    torch::Tensor result = at::empty(common_shape, a.options());
+
+    torch::Tensor a_contig = a.expand(common_shape).contiguous();
+    torch::Tensor b_contig = b.expand(common_shape).contiguous();
+
+    show_info("Using vec_add_f for same size tensors ...");
+    vec_add_f(
+        a_contig.data_ptr<float>(),
+        b_contig.data_ptr<float>(),
+        result.data_ptr<float>(),
+        result.numel()
+    );
+    show_info("vec_add_f success ...");
+    return result;
+}
+
+
 // torch::Tensor pim_add(const at::Tensor& a, const at::Tensor& b) {
 //     std::vector<int64_t> broadcasted_shape;
 //     try {
@@ -39,26 +62,3 @@
 //     show_info("Unexpected tensor shapes behaviour, using torch::add");
 //     return torch::add(a, b);
 // }
-
-torch::Tensor pim_add(const at::Tensor& a, const at::Tensor& b) {
-    // TORCH_CHECK(a.scalar_type() == at::kFloat && b.scalar_type() == at::kFloat,
-    //            "Only float32 tensors supported");
-
-    // compute broadcasted shape
-    auto common_shape = at::infer_size(a.sizes(), b.sizes());
-    torch::Tensor result = at::empty(common_shape, a.options());
-
-    // contiguous copies of inputs
-    torch::Tensor a_contig = a.expand(common_shape).contiguous();
-    torch::Tensor b_contig = b.expand(common_shape).contiguous();
-
-    show_info("Using vec_add_f for same size tensors ...");
-    vec_add_f(
-        a_contig.data_ptr<float>(),
-        b_contig.data_ptr<float>(),
-        result.data_ptr<float>(),
-        result.numel()
-    );
-    show_info("vec_add_f success ...");
-    return result;
-}

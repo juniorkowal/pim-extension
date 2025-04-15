@@ -29,16 +29,9 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("custom_device", &get_custom_device, "get custom device object");
-//    m.def("custom_add_called", &custom_add_called, "check if our custom add function was called");
     m.def("set_custom_device_index", &set_custom_device_index, "set custom device index");
 //    m.def("custom_storage_registry", &custom_storage_registry, "set custom storageImpl creat method");
     m.def("pim_mm", &pim_mm, "PIM mm implementation");
     m.def("pim_add", &pim_add, "PIM add implementation");
     m.def("pim_relu", &pim_relu, "PIM relu implementation");
 }
-//
-//PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-//    m.def("pim_mm", &pim_mm, "PIM mm implementation");
-//    m.def("pim_add", &pim_add, "PIM add implementation");
-//    m.def("pim_relu", &pim_relu, "PIM relu implementation");
-//}

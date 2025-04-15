@@ -38,7 +38,6 @@ class NestedModel(nn.Module):
 class TestModel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Set up logging once for the entire test class
         setup_logging(os.path.basename(__file__))
 
 #    @classmethod
@@ -50,11 +49,9 @@ class TestModel(unittest.TestCase):
         """Test for mismatches in weights and biases between original and optimized models."""
         logging.info("Running test_weights_and_biases")
 
-        # Create models
         original_model = BaseModel()
         opt_model = hpim.optimize(model=original_model, mode='layers')
 
-        # Test weights and biases
         mse_list = []
         for orig_layer, opt_layer in zip(original_model.named_modules(), opt_model.named_modules()):
             orig_name, orig_module = orig_layer
@@ -87,14 +84,11 @@ class TestModel(unittest.TestCase):
         """Test for mismatches in model outputs between original and optimized models."""
         logging.info("Running test_model_output")
 
-        # Create models
         original_model = BaseModel()
         opt_model = hpim.optimize(model=original_model, mode='layers')
 
-        # Generate input tensor
         input_tensor = torch.rand(size=[1, 100])
 
-        # Test model output
         orig_output = original_model(input_tensor)
         opt_output = opt_model(input_tensor)
 
