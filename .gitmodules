@@ -1,3 +1,6 @@
 [submodule "third_party/libpimblas"]
 	path = third_party/libpimblas
 	url = https://github.com/3cityrnd/libpimblas.git
+[submodule "third_party/upmemsdk"]
+	path = third_party/upmemsdk
+	url = https://github.com/3cityrnd/upmemsdk.git
