@@ -23,11 +23,15 @@ def _load_extension():
     import torch.utils.backend_registration
 
     dir_path = os.path.dirname(__file__)
-    lib_path = glob.glob(os.path.join(dir_path, '*_C*.so'))
+    lib_path = glob.glob(os.path.join(dir_path, "*_C*.so"))
     
     if not lib_path:
         raise FileNotFoundError("_C.so file not found.")
-    
+    if os.environ.get("UPMEM_HOME") is None:
+        print("UPMEM_HOME not found, please install and source upmemsdk first.")
+        print("If you installed from source, you can use: source `python -m upmemsdk`")
+        raise RuntimeError("UPMEM_HOME not found.")
+
     torch.ops.load_library(lib_path[0])
 
     torch.utils.backend_registration.rename_privateuse1_backend("upmem")

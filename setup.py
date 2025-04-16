@@ -1,59 +1,163 @@
-from setuptools import setup, find_packages
-from torch.utils.cpp_extension import CppExtension, BuildExtension
+import glob
 import os
+import subprocess
+import sys
+import time
+
+from setuptools import find_packages, setup
+from torch.utils.cpp_extension import BuildExtension, CppExtension
+from pathlib import Path
+
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+THIRD_PARTY_PATH = os.path.join(BASE_DIR, "third_party")
 
-PIMBLAS_PATH = os.getenv("PIMBLAS_DIR", "/root/pimblas_install")
-PIMBLAS_INCLUDE = os.path.join(PIMBLAS_PATH, "include")
-PIMBLAS_LIB = os.path.join(PIMBLAS_PATH, "lib")
+PIMBLAS_DIR = os.getenv("PIMBLAS_DIR", os.path.join(THIRD_PARTY_PATH, 'libpimblas'))
+PIMBLAS_BUILD_DIR = os.path.join(PIMBLAS_DIR, "build")
+PIMBLAS_INSTALL_DIR = os.path.join(PIMBLAS_DIR, "install")
+PIMBLAS_INCLUDE = os.path.join(PIMBLAS_INSTALL_DIR, "include")
+PIMBLAS_LIB = os.path.join(PIMBLAS_INSTALL_DIR, "lib")
+UPMEMSDK_DIR = os.path.join(THIRD_PARTY_PATH, "upmemsdk")
 
-packages = find_packages(where='.', include=['torch_hpim', 'torch_hpim.*'])
 
-setup(
-    name='torch_hpim',
-    version='0.1',
-    packages=packages,
-    # packages=['torch_hpim', 'torch_hpim.hpim'],
-    package_dir={
-        'torch_hpim': 'torch_hpim',  # Root package
-    },
-#    package_data={"hpim": ["*.so"]},
-#    include_package_data=True,
-    ext_modules=[
-        CppExtension(
-            name='torch_hpim._C',
-            sources=[
-                'torch_hpim/csrc/extension.cpp',
-                'torch_hpim/csrc/device.cpp',
-                'torch_hpim/csrc/ops/mm.cpp',
-                'torch_hpim/csrc/ops/add.cpp',
-                'torch_hpim/csrc/ops/relu.cpp'
+def get_submodule_folders():
+    git_modules_path = os.path.join(BASE_DIR, ".gitmodules")
+    with open(git_modules_path) as f:
+        return [
+            os.path.join(BASE_DIR, line.split("=", 1)[1].strip())
+            for line in f.readlines()
+            if line.strip().startswith("path")
+        ]
+
+def check_submodules():
+    def not_exists_or_empty(folder):
+        return not os.path.exists(folder) or (
+            os.path.isdir(folder) and len(os.listdir(folder)) == 0
+        )
+
+    folders = get_submodule_folders()
+    # If none of the submodule folders exists, try to initialize them
+    if all(not_exists_or_empty(folder) for folder in folders):
+        try:
+            print(" --- Trying to initialize submodules")
+            start = time.time()
+            subprocess.check_call(["git", "submodule", "update", "--init", "--recursive"], cwd=BASE_DIR)  # Compliant
+            end = time.time()
+            print(f" --- Submodule initialization took {end - start:.2f} sec")
+        except Exception:
+            print(" --- Submodule initalization failed")
+            print("Please run:\n\tgit submodule init && git submodule update")
+            sys.exit(1)
+
+# note: on ascend they have op-plugin repo on gitee with torch-ready operators
+# we have libpimblas and we are making operators inside extension
+# def add_ops_files(base_dir, file_list):
+#     # add ops header files
+#     plugin_path = os.path.join(base_dir, 'third_party/op-plugin/op_plugin/include')
+#     if os.path.exists(plugin_path):
+#         file_list.append('third_party/op-plugin/op_plugin/include/*.h')
+#     return
+
+
+def get_src():
+    csrc_dir = os.path.join(BASE_DIR, "torch_hpim", "csrc")
+    return sorted([str(p) for p in Path(csrc_dir).rglob("*.cpp")])
+
+
+def setup_upmem_env(script_path, default_backend=None):
+    script_dir = os.path.dirname(script_path)
+    upmem_home = script_dir
+    os.environ['UPMEM_HOME'] = upmem_home
+    print(f"Setting UPMEM_HOME to {upmem_home} and updating PATH/LD_LIBRARY_PATH/PYTHONPATH")
+    ld_lib_path = os.path.join(upmem_home, "lib")
+    if 'LD_LIBRARY_PATH' in os.environ:
+        os.environ['LD_LIBRARY_PATH'] = f"{ld_lib_path}:{os.environ['LD_LIBRARY_PATH']}"
+    else:
+        os.environ['LD_LIBRARY_PATH'] = ld_lib_path
+    bin_path = os.path.join(upmem_home, "bin")
+    os.environ['PATH'] = f"{bin_path}:{os.environ.get('PATH', '')}"
+    python_relative_path = "local/lib/python3.10/dist-packages"
+    python_path = os.path.join(upmem_home, python_relative_path)
+    if 'PYTHONPATH' in os.environ:
+        os.environ['PYTHONPATH'] = f"{python_path}:{os.environ['PYTHONPATH']}"
+    else:
+        os.environ['PYTHONPATH'] = python_path
+    if default_backend:
+        os.environ['UPMEM_PROFILE_BASE'] = f"backend={default_backend}"
+        print(f"Setting default backend to {default_backend} in UPMEM_PROFILE_BASE")
+
+def build_upmemsdk():
+    """Install UPMEM SDK via pip and configure environment"""
+    print("Installing UPMEM SDK...")
+    subprocess.run([sys.executable, "-m", "pip", "install", UPMEMSDK_DIR], check=True)
+    result = subprocess.run([sys.executable, "-m", "upmemsdk"], 
+                           capture_output=True, text=True, check=True)
+    env_script = result.stdout.strip()
+    if env_script:
+        print(f"UPMEM SDK environment script: {env_script}")
+    else:
+        raise RuntimeError("UPMEM SDK installation failed - no env script returned")
+    setup_upmem_env(env_script)
+
+
+def build_pimblas():
+    try:
+        os.makedirs(PIMBLAS_BUILD_DIR, exist_ok=True)
+        subprocess.check_call([
+            "cmake",
+            f"-DCMAKE_INSTALL_PREFIX={os.path.abspath(PIMBLAS_INSTALL_DIR)}",
+            ".."
+        ], cwd=PIMBLAS_BUILD_DIR)
+        subprocess.check_call(["make", "-j"], cwd=PIMBLAS_BUILD_DIR)
+        subprocess.check_call(["make", "install"], cwd=PIMBLAS_BUILD_DIR)
+        if not os.path.exists(os.path.join(PIMBLAS_LIB, "libpimblas.so")):
+            raise RuntimeError("pimblas build failed - library not found")
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"Failed to build pimblas: {e}")
+
+
+def main():
+    check_submodules()
+    build_upmemsdk()
+    build_pimblas() # TODO: make it so that we include pimblas in package and use it from there
+
+    packages = find_packages(include=['torch_hpim', 'torch_hpim.*'])
+    setup(
+        name='torch_hpim',
+        version='0.1',
+        packages=packages,
+        package_dir={
+            'torch_hpim': 'torch_hpim',
+        },
+        package_data={
+            'torch_hpim': [
+                'lib/pimblas/lib/*.so*',
+                'lib/pimblas/include/*.h'
             ],
-            include_dirs=[
-                PIMBLAS_INCLUDE, 
-                os.path.abspath("torch_hpim/csrc"),
-                os.path.join(BASE_DIR),
-            ],
-            library_dirs=[PIMBLAS_LIB],
-            libraries=["pimblas"],
-            extra_compile_args=['-std=c++17', '-lstdc++'],
-            runtime_library_dirs=[PIMBLAS_LIB],
-            extra_link_args=['-L' + PIMBLAS_LIB],
-        ),
-    ],
-    cmdclass={'build_ext': BuildExtension},
-    install_requires=[
-        'torch',
-        'numpy'
-    ],
-    # options={"bdist_wheel": {"universal": True}},
-)
+        },
+        ext_modules=[
+            CppExtension(
+                name='torch_hpim._C',
+                sources=get_src(),
+                include_dirs=[
+                    PIMBLAS_INCLUDE, 
+                    os.path.abspath("torch_hpim/csrc"),
+                    os.path.join(BASE_DIR),
+                ],
+                library_dirs=[PIMBLAS_LIB],
+                libraries=["pimblas"],
+                extra_compile_args=['-std=c++17', '-lstdc++'],
+                runtime_library_dirs=[PIMBLAS_LIB],
+                extra_link_args=['-L' + PIMBLAS_LIB],
+            ),
+        ],
+        cmdclass={'build_ext': BuildExtension},
+        install_requires=[
+            'torch',
+            'numpy'
+        ],
+    )
 
-# def main():
-#     1. upmemsdk # to na kompilacje a tak to dac warning do inita
-#     2. libpimblas
-#     3 setup()
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

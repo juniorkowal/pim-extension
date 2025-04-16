@@ -172,3 +172,8 @@ cython_debug/
 
 # logs
 logs/
+
+# all build and install folders
+**/build/
+**/install/
+
