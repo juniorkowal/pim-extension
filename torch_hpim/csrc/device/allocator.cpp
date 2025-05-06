@@ -96,7 +96,7 @@ at::Tensor & custom_fill__scalar(at::Tensor & self, const at::Scalar & value) {
 // basic dummy copy_() function, so we can copy from the custom device to/from CPU
 at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool non_blocking) {
   const at::OptionalDeviceGuard device_guard(at::device_of(self));
-  show_info("Custom aten::_copy_from() called!");
+  show_info("Custom aten::_copy_from() called! SELF: " << self.is_cpu() << " DESTINATION: " << dst.is_cpu());
   TORCH_CHECK(self.is_cpu() || self.device().type() == c10::DeviceType::PrivateUse1, "Dummy test only allows copy from cpu -> dummy device.");
   TORCH_CHECK(dst.is_cpu() || dst.device().type() == c10::DeviceType::PrivateUse1, "Dummy test only allows copy from cpu -> dummy device.");
 

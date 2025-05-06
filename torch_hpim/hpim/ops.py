@@ -1,14 +1,18 @@
 import torch
 
-@torch.library.register_fake("hpim::pim_mm")
+@torch.library.register_fake("torch_hpim::mm")
 def _(a, b): return torch.empty_like(a)
 
-@torch.library.register_fake("hpim::pim_add")
+@torch.library.register_fake("torch_hpim::add")
 def _(a, b): return torch.empty_like(a)
 
-@torch.library.register_fake("hpim::pim_relu")
+@torch.library.register_fake("torch_hpim::pim_relu")
 def _(a, out=None): return torch.empty_like(a)
 
-mm = torch.ops.hpim.pim_mm
-relu = torch.ops.hpim.pim_relu
-add = torch.ops.hpim.pim_add
+import torch_hpim._C
+
+mm = torch.ops.torch_hpim.mm
+relu = torch.ops.torch_hpim.pim_relu
+add = torch.ops.torch_hpim.add
+# add = torch_hpim._C.pim_add
+

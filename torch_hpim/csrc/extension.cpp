@@ -63,8 +63,10 @@ at::Tensor& custom_set_source_Storage(at::Tensor& result, c10::Storage src);
 
 
 // OPERATORS
-torch::Tensor pim_mm(const at::Tensor& a, const at::Tensor& b);
-torch::Tensor pim_add(const at::Tensor& a, const at::Tensor& b);
+// torch::Tensor pim_mm(const at::Tensor& a, const at::Tensor& b);
+at::Tensor mm(const at::Tensor& self, const at::Tensor& mat2);
+// torch::Tensor pim_add(const at::Tensor& a, const at::Tensor& b);
+at::Tensor add(const at::Tensor& self, const at::Tensor& other, const c10::Scalar& alpha=1);
 torch::Tensor pim_relu(const at::Tensor& a, const c10::optional<at::Tensor>& out = c10::nullopt);
 
 
@@ -74,16 +76,64 @@ void custom_cpu_fallback(const c10::OperatorHandle& op, torch::jit::Stack* stack
 }
 
 
-TORCH_LIBRARY(hpim, m) {
-    m.def("pim_add(Tensor a, Tensor b) -> Tensor");
-    m.def("pim_mm(Tensor a, Tensor b) -> Tensor");
+torch::Tensor custom_view(const at::Tensor& self, c10::IntArrayRef size) {
+    show_info("Custom view called!");
+    auto inferred_size = at::infer_size(size, self.numel());
+    auto stride = at::detail::computeStride(self.sizes(), self.strides(), inferred_size);
+    // TORCH_CHECK(
+    //     stride.has_value(),
+    //     "view size is "
+    //     "not compatible with input tensor's size and stride (at least one dimension"
+    //     " spans across two contiguous subspaces). Use .reshape(...) instead.", OPS_ERROR(ErrCode::PARAM));
+    auto stride_value = *stride;
+    auto dst = self;
+    // return alias_with_sizes_and_strides_npu(dst, inferred_size, stride_value);
+    return at::native::view(self, size);
+}
+
+at::Tensor custom_reshape(const at::Tensor & self, at::IntArrayRef shape) {
+    return at::_ops::reshape::call(self, c10::fromIntArrayRefSlow(shape));
+}
+
+at::Tensor custom_as_strided(
+    const at::Tensor& self,
+    c10::IntArrayRef size,
+    c10::IntArrayRef stride,
+    c10::optional<int64_t> storage_offset_)
+{
+    auto dst = self;
+    // if (InferFormat::IsDefiniteTensorWhenMetaDataChanges(dst, size) && !FormatHelper::IsOpInputBaseFormat(dst)) {
+    //     TORCH_WARN_ONCE("current tensor is running as_strided, don't perform inplace operations on the returned value."
+    //         " If you encounter this warning and have precision issues,"
+    //         " you can try torch.npu.config.allow_internal_format = False to resolve precision issues.")
+    //     dst = FormatCastHelper::ApplyBaseFormatTensorBy(dst);
+    // }
+    auto storage_offset = storage_offset_.value_or(dst.storage_offset());
+    auto result = at::detail::make_tensor<at::TensorImpl>(
+        c10::TensorImpl::VIEW,
+        c10::Storage(dst.storage()),
+        dst.key_set(),
+        dst.dtype());
+    at::native::setStrided(result, size, stride, storage_offset);
+    return result;
+}
+
+
+
+TORCH_LIBRARY(torch_hpim, m) {
+    m.def("add(Tensor self, Tensor other, Scalar alpha=1) -> Tensor");
+    // m.def("pim_mm(Tensor a, Tensor b) -> Tensor");
+    m.def("mm(Tensor self, Tensor mat2) -> Tensor");
+
     m.def("pim_relu(Tensor a, Tensor? out=None) -> Tensor");
 }
 
 TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     // m.impl("empty.memory_format", privateuse_empty_memory_format);
-    m.impl("pim_add", pim_add);
-    m.impl("pim_mm", pim_mm);
+    // m.impl("pim_add", pim_add);
+    m.impl("add.Tensor", add);
+    // m.impl("pim_mm", pim_mm);
+    m.impl("mm", mm);    
     m.impl("pim_relu", pim_relu);
     // m.impl("_foreach_add.List", torch::CppFunction::makeFromBoxedFunction<&custom_cpu_fallback>()); fallback for add ops?
     m.impl("empty.memory_format", &custom_empty_memory_format);
@@ -92,10 +142,17 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("_copy_from", &custom__copy_from);
     m.impl("_copy_from_and_resize", &custom__copy_from_and_resize);
     m.impl("set_.source_Storage", &custom_set_source_Storage);
+    m.impl("view", &custom_view); //func: view(Tensor(a) self, SymInt[] size) -> Tensor(a)
+    m.impl("reshape", &custom_reshape);
+    m.impl("as_strided", &custom_as_strided);
 }
 
 TORCH_LIBRARY_IMPL(_, PrivateUse1, m) {
     m.fallback(torch::CppFunction::makeFromBoxedFunction<&custom_cpu_fallback>());
+}
+
+TORCH_LIBRARY_IMPL(_, AutogradPrivateUse1, m){
+    m.fallback(torch::CppFunction::makeFallthrough());
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
@@ -104,12 +161,15 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     // m.def("custom_storage_registry", &custom_storage_registry, "set custom storageImpl creat method");
     
     // OPERATORS
-    m.def("pim_mm", &pim_mm, "PIM mm implementation"); // note: later we will override things like add.Tensor instead
-    m.def("pim_add", &pim_add, "PIM add implementation"); // so this section won't be needed
+    // m.def("pim_mm", &pim_mm, "PIM mm implementation"); // note: later we will override things like add.Tensor instead
+    m.def("mm", &mm, "PIM mm implementation");
+    // m.def("pim_add", &pim_add, "PIM add implementation"); // so this section won't be needed
+    m.def("add", &add, "PIM add implementation"); // so this section won't be needed
+
     m.def("pim_relu", &pim_relu, "PIM relu implementation");
 
     // DEVICE STUFF
-    // m.def("default_generator", &default_generator, "default_generator for privateuse1");
+    m.def("default_generator", &default_generator, "default_generator for privateuse1");
     m.def("custom_serialization_registry", &custom_serialization_registry, "register custom serialization function");
     m.def("check_backend_meta", &check_backend_meta, "check if BackendMeta serialization correctly");
     m.def("custom_set_backend_meta", &custom_set_backend_meta, "a fake set tensor BackendMeta function");
