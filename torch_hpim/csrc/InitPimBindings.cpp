@@ -79,6 +79,16 @@ void custom_cpu_fallback(const c10::OperatorHandle& op, torch::jit::Stack* stack
     at::native::cpu_fallback(op, stack);
 }
 
+namespace pim { // hacky solution so that linear layer works correctly with device
+// aten::t(Tensor(a) self) -> Tensor(a)
+at::Tensor t(const at::Tensor & self) {
+    const auto orig_device = self.device();
+    at::Tensor result = self.cpu().t().contiguous().to(orig_device);
+    show_info("Transposed tensor ...");
+    return result;
+}
+
+}
 
 at::Tensor custom_view(const at::Tensor& self, c10::IntArrayRef size) {
     show_info("Custom view called!");
@@ -130,6 +140,7 @@ TORCH_LIBRARY(torch_hpim, m) {
     m.def("mul(Tensor self, Tensor other) -> Tensor");
     m.def("relu(Tensor self) -> Tensor");
     m.def("addmm(Tensor self, Tensor mat1, Tensor mat2, Scalar beta=1, Scalar alpha=1) -> Tensor");
+    m.def("t(Tensor self) -> Tensor");
 }
 
 TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
@@ -138,6 +149,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("mul.Tensor", pim::mul);
     m.impl("relu", pim::relu);
     m.impl("addmm", pim::addmm);
+    m.impl("t", pim::t);
     // m.impl("_foreach_add.List", torch::CppFunction::makeFromBoxedFunction<&custom_cpu_fallback>()); fallback for add ops?
     m.impl("empty.memory_format", &custom_empty_memory_format);
     m.impl("empty_strided", &custom_empty_strided);
@@ -165,6 +177,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("add", &pim::add, "PIM add implementation");
     m.def("relu", &pim::relu, "PIM relu implementation");
     m.def("addmm", &pim::addmm, "PIM addmm implementation");
+    m.def("t", &pim::t, "PIM t (transpose) implementation");
 
     // DEVICE STUFF
     m.def("default_generator", &default_generator, "default_generator for privateuse1");
