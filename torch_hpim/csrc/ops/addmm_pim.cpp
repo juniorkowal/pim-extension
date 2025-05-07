@@ -1,7 +1,8 @@
 // #include <torch/script.h>
 // #include <vector>
 // #include "pimblas.h"
-// #include "torch_hpim/csrc/logging/logger.h"
+// #include "torch_hpim/csrc/_logging/Logger.h"
+
 
 // at::Tensor mm(const at::Tensor& self, const at::Tensor& mat2);
 // at::Tensor add(const at::Tensor& self, const at::Tensor& other, const c10::Scalar& alpha=1);

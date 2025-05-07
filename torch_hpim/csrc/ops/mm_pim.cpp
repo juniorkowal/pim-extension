@@ -1,7 +1,9 @@
 #include <torch/script.h>
 #include <vector>
 #include "pimblas.h"
-#include "torch_hpim/csrc/logging/logger.h"
+#include "torch_hpim/csrc/_logging/Logger.h"
+
+namespace pim {
 
 at::Tensor mm(const at::Tensor& self, const at::Tensor& mat2) {
 // torch::Tensor pim_mm(const at::Tensor& a, const at::Tensor& b) {
@@ -12,7 +14,7 @@ at::Tensor mm(const at::Tensor& self, const at::Tensor& mat2) {
     int k = self.size(1);  // num of cols in A (must match rows in B)
     int n = mat2.size(1);  // num of cols in B
 
-    torch::Tensor output = torch::zeros({m, n}, self.options());
+    at::Tensor output = at::zeros({m, n}, self.options());
 
     const float alpha = 1.0f;
     const float beta = 0.0f;
@@ -24,4 +26,6 @@ at::Tensor mm(const at::Tensor& self, const at::Tensor& mat2) {
                     &beta, output.data_ptr<float>());
     show_info("gemm_row_maj_f success ...");
     return output;
+}
+
 }

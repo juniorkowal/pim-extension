@@ -1,6 +1,7 @@
 #include <torch/script.h>
 #include <torch/extension.h>
-#include "torch_hpim/csrc/logging/logger.h"
+#include "torch_hpim/csrc/_logging/Logger.h"
+
 
 
 #include <c10/core/Allocator.h>
@@ -28,17 +29,13 @@
 #include <ATen/ops/view.h>
 
 #include <unordered_map>
-// c10::Device get_custom_device();
-// void set_custom_device_index(c10::DeviceIndex device_index);
-// torch::Tensor privateuse_empty_memory_format(at::IntArrayRef size, c10::optional<at::ScalarType> dtype,
-//     c10::optional<at::Layout> layout, c10::optional<at::Device> device,
-//     c10::optional<bool> pin_memory, c10::optional<at::MemoryFormat> memory_format);
+
 
 // DEVICE STUFF
-// generator.cpp
+// PIMGenerator.cpp
 const at::Generator& default_generator(c10::DeviceIndex device_index); // random number generator -> generator.cpp
-// allocator.cpp
-at::Tensor custom_empty_memory_format(at::IntArrayRef size, // at::tensor vs torch::tensor???
+// PIMAllocator.cpp
+at::Tensor custom_empty_memory_format(at::IntArrayRef size,
                                         c10::optional<at::ScalarType> dtype, 
                                         c10::optional<at::Layout> layout, 
                                         c10::optional<at::Device> device, 
@@ -52,23 +49,22 @@ at::Tensor custom_empty_strided(at::IntArrayRef size,
                                         c10::optional<bool> pin_memory);                          
 at::Tensor & custom_fill__scalar(at::Tensor& self, const at::Scalar& value);
 at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool non_blocking);
-// metadata.cpp
+// PIMSerialization.cpp
 void custom_serialization_registry();
 bool check_backend_meta(const at::Tensor& t);
 void custom_set_backend_meta(const at::Tensor& t);
-// storage.cpp
+// PIMStorage.cpp
 void custom_storage_registry();
 at::Tensor custom__copy_from_and_resize(const at::Tensor& self, const at::Tensor& dst);
 at::Tensor& custom_set_source_Storage(at::Tensor& result, c10::Storage src);
 
 
 // OPERATORS
-// torch::Tensor pim_mm(const at::Tensor& a, const at::Tensor& b);
+namespace pim {
 at::Tensor mm(const at::Tensor& self, const at::Tensor& mat2);
-// torch::Tensor pim_add(const at::Tensor& a, const at::Tensor& b);
 at::Tensor add(const at::Tensor& self, const at::Tensor& other, const c10::Scalar& alpha=1);
-torch::Tensor pim_relu(const at::Tensor& a, const c10::optional<at::Tensor>& out = c10::nullopt);
-
+at::Tensor relu(const at::Tensor& self);
+} // namespace pim
 
 void custom_cpu_fallback(const c10::OperatorHandle& op, torch::jit::Stack* stack) {
     show_info("UPMEM fallback: Operator '" << op.schema().operator_name() << "' not supported. Switching to CPU.");
@@ -76,7 +72,7 @@ void custom_cpu_fallback(const c10::OperatorHandle& op, torch::jit::Stack* stack
 }
 
 
-torch::Tensor custom_view(const at::Tensor& self, c10::IntArrayRef size) {
+at::Tensor custom_view(const at::Tensor& self, c10::IntArrayRef size) {
     show_info("Custom view called!");
     auto inferred_size = at::infer_size(size, self.numel());
     auto stride = at::detail::computeStride(self.sizes(), self.strides(), inferred_size);
@@ -122,19 +118,14 @@ at::Tensor custom_as_strided(
 
 TORCH_LIBRARY(torch_hpim, m) {
     m.def("add(Tensor self, Tensor other, Scalar alpha=1) -> Tensor");
-    // m.def("pim_mm(Tensor a, Tensor b) -> Tensor");
     m.def("mm(Tensor self, Tensor mat2) -> Tensor");
-
-    m.def("pim_relu(Tensor a, Tensor? out=None) -> Tensor");
+    m.def("relu(Tensor self) -> Tensor");
 }
 
 TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
-    // m.impl("empty.memory_format", privateuse_empty_memory_format);
-    // m.impl("pim_add", pim_add);
-    m.impl("add.Tensor", add);
-    // m.impl("pim_mm", pim_mm);
-    m.impl("mm", mm);    
-    m.impl("pim_relu", pim_relu);
+    m.impl("add.Tensor", pim::add);
+    m.impl("mm", pim::mm);    
+    m.impl("relu", pim::relu);
     // m.impl("_foreach_add.List", torch::CppFunction::makeFromBoxedFunction<&custom_cpu_fallback>()); fallback for add ops?
     m.impl("empty.memory_format", &custom_empty_memory_format);
     m.impl("empty_strided", &custom_empty_strided);
@@ -156,17 +147,10 @@ TORCH_LIBRARY_IMPL(_, AutogradPrivateUse1, m){
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-    // m.def("custom_device", &get_custom_device, "get custom device object"); // to call the function: torch_hpim._C.custom_device
-    // m.def("set_custom_device_index", &set_custom_device_index, "set custom device index");
-    // m.def("custom_storage_registry", &custom_storage_registry, "set custom storageImpl creat method");
-    
     // OPERATORS
-    // m.def("pim_mm", &pim_mm, "PIM mm implementation"); // note: later we will override things like add.Tensor instead
-    m.def("mm", &mm, "PIM mm implementation");
-    // m.def("pim_add", &pim_add, "PIM add implementation"); // so this section won't be needed
-    m.def("add", &add, "PIM add implementation"); // so this section won't be needed
-
-    m.def("pim_relu", &pim_relu, "PIM relu implementation");
+    m.def("mm", &pim::mm, "PIM mm implementation");
+    m.def("add", &pim::add, "PIM add implementation");
+    m.def("relu", &pim::relu, "PIM relu implementation");
 
     // DEVICE STUFF
     m.def("default_generator", &default_generator, "default_generator for privateuse1");
@@ -175,15 +159,3 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("custom_set_backend_meta", &custom_set_backend_meta, "a fake set tensor BackendMeta function");
     m.def("custom_storage_registry", &custom_storage_registry, "set custom storageImpl creat method");
 }
-
-/*
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-    // m.def("custom_device", &get_custom_device, "get custom device object");
-    // m.def("set_custom_device_index", &set_custom_device_index, "set custom device index");
-    m.def("custom_storage_registry", &custom_storage_registry, "set custom storageImpl creat method");
-    m.def("custom_set_backend_meta", &custom_set_backend_meta, "a fake set tensor BackendMeta function");
-    m.def("check_backend_meta", &check_backend_meta, "check if BackendMeta serialization correctly");
-    m.def("custom_serialization_registry", &custom_serialization_registry, "register custom serialization function");
-    m.def("default_generator", &default_generator, "default_generator for privateuse1");
-}
-*/

@@ -24,9 +24,8 @@
 
 #include <unordered_map>
 
+#include "torch_hpim/csrc/_logging/Logger.h"
 
-
-#include "torch_hpim/csrc/logging/logger.h"
 
 
 // A dummy allocator for our custom device, that secretly uses the CPU
