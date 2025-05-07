@@ -12,7 +12,7 @@ at::Tensor add(const at::Tensor& self, const at::Tensor& other, const c10::Scala
                 other.device().type() == c10::DeviceType::PrivateUse1,
                 "Both tensors must be on PrivateUse1 device");
     auto common_shape = at::infer_size(self.sizes(), other.sizes());
-    at::Tensor result = at::empty(common_shape, self.options());
+    at::Tensor output = at::empty(common_shape, self.options());
 
     at::Tensor a_contig = self.expand(common_shape).contiguous();
     at::Tensor b_contig = other.expand(common_shape).contiguous();
@@ -21,11 +21,11 @@ at::Tensor add(const at::Tensor& self, const at::Tensor& other, const c10::Scala
     vec_add_f(
         a_contig.data_ptr<float>(),
         b_contig.data_ptr<float>(),
-        result.data_ptr<float>(),
-        result.numel()
+        output.data_ptr<float>(),
+        output.numel()
     );
     show_info("vec_add_f success ...");
-    return result;
+    return output;
 }
 
 }

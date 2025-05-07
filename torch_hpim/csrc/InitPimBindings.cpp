@@ -64,6 +64,14 @@ namespace pim {
 at::Tensor mm(const at::Tensor& self, const at::Tensor& mat2);
 at::Tensor add(const at::Tensor& self, const at::Tensor& other, const c10::Scalar& alpha=1);
 at::Tensor relu(const at::Tensor& self);
+at::Tensor addmm(
+    const at::Tensor& self,
+    const at::Tensor& mat1,
+    const at::Tensor& mat2,
+    const at::Scalar& beta = 1,
+    const at::Scalar& alpha = 1
+);
+at::Tensor mul(const at::Tensor& self, const at::Tensor& other);
 } // namespace pim
 
 void custom_cpu_fallback(const c10::OperatorHandle& op, torch::jit::Stack* stack) {
@@ -119,13 +127,17 @@ at::Tensor custom_as_strided(
 TORCH_LIBRARY(torch_hpim, m) {
     m.def("add(Tensor self, Tensor other, Scalar alpha=1) -> Tensor");
     m.def("mm(Tensor self, Tensor mat2) -> Tensor");
+    m.def("mul(Tensor self, Tensor other) -> Tensor");
     m.def("relu(Tensor self) -> Tensor");
+    m.def("addmm(Tensor self, Tensor mat1, Tensor mat2, Scalar beta=1, Scalar alpha=1) -> Tensor");
 }
 
 TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("add.Tensor", pim::add);
-    m.impl("mm", pim::mm);    
+    m.impl("mm", pim::mm);
+    m.impl("mul.Tensor", pim::mul);
     m.impl("relu", pim::relu);
+    m.impl("addmm", pim::addmm);
     // m.impl("_foreach_add.List", torch::CppFunction::makeFromBoxedFunction<&custom_cpu_fallback>()); fallback for add ops?
     m.impl("empty.memory_format", &custom_empty_memory_format);
     m.impl("empty_strided", &custom_empty_strided);
@@ -149,8 +161,10 @@ TORCH_LIBRARY_IMPL(_, AutogradPrivateUse1, m){
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     // OPERATORS
     m.def("mm", &pim::mm, "PIM mm implementation");
+    m.def("mul", &pim::mul, "PIM mul implementation");
     m.def("add", &pim::add, "PIM add implementation");
     m.def("relu", &pim::relu, "PIM relu implementation");
+    m.def("addmm", &pim::addmm, "PIM addmm implementation");
 
     // DEVICE STUFF
     m.def("default_generator", &default_generator, "default_generator for privateuse1");

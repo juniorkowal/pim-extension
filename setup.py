@@ -117,9 +117,9 @@ def build_pimblas():
 
 
 def main():
-    check_submodules()
-    build_upmemsdk()
-    build_pimblas() # TODO: make it so that we include pimblas in package and use it from there
+    # check_submodules()
+    # build_upmemsdk()
+    # build_pimblas() # TODO: make it so that we include pimblas in package and use it from there
 
     packages = find_packages(include=['torch_hpim', 'torch_hpim.*'])
     setup(
