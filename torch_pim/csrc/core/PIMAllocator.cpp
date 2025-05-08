@@ -5,7 +5,7 @@
 #include <ATen/EmptyTensor.h>
 #include <ATen/DeviceGuard.h>
 
-#include "torch_hpim/csrc/_logging/Logger.h"
+#include "torch_pim/csrc/_logging/Logger.h"
 
 
 // A dummy allocator for our custom device, that secretly uses the CPU

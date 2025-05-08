@@ -1,7 +1,7 @@
 #include <ATen/ATen.h>
 
 #include "pimblas.h"
-#include "torch_hpim/csrc/_logging/Logger.h"
+#include "torch_pim/csrc/_logging/Logger.h"
 
 
 namespace pim {

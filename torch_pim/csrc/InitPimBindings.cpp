@@ -1,7 +1,7 @@
 #include <torch/script.h>
 #include <torch/extension.h>
 
-#include "torch_hpim/csrc/_logging/Logger.h"
+#include "torch_pim/csrc/_logging/Logger.h"
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ device ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,7 +52,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
 at::Tensor custom__copy_from_and_resize(const at::Tensor& self, const at::Tensor& dst);
 
 
-TORCH_LIBRARY(torch_hpim, m) {
+TORCH_LIBRARY(torch_pim, m) {
     m.def("add(Tensor self, Tensor other, Scalar alpha=1) -> Tensor");
     m.def("mm(Tensor self, Tensor mat2) -> Tensor");
     m.def("mul(Tensor self, Tensor other) -> Tensor");

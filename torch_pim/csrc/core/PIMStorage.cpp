@@ -1,7 +1,7 @@
 #include <ATen/Tensor.h>
 #include <ATen/native/Resize.h>
 
-#include "torch_hpim/csrc/_logging/Logger.h"
+#include "torch_pim/csrc/_logging/Logger.h"
 
 
 // A dummy storageImpl for our custom device, that secretly uses the CPU

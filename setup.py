@@ -62,7 +62,7 @@ def check_submodules():
 
 
 def get_src():
-    csrc_dir = os.path.join(BASE_DIR, "torch_hpim", "csrc")
+    csrc_dir = os.path.join(BASE_DIR, "torch_pim", "csrc")
     return sorted([str(p) for p in Path(csrc_dir).rglob("*.cpp")])
 
 
@@ -124,27 +124,27 @@ def main():
         build_upmemsdk()
         build_pimblas() # TODO: make it so that we include pimblas in package and use it from there
 
-    packages = find_packages(include=['torch_hpim', 'torch_hpim.*'])
+    packages = find_packages(include=['torch_pim', 'torch_pim.*'])
     setup(
-        name='torch_hpim',
+        name='torch_pim',
         version='0.1',
         packages=packages,
         package_dir={
-            'torch_hpim': 'torch_hpim',
+            'torch_pim': 'torch_pim',
         },
         package_data={
-            'torch_hpim': [
+            'torch_pim': [
                 'lib/pimblas/lib/*.so*',
                 'lib/pimblas/include/*.h'
             ],
         },
         ext_modules=[
             CppExtension(
-                name='torch_hpim._C',
+                name='torch_pim._C',
                 sources=get_src(),
                 include_dirs=[
                     PIMBLAS_INCLUDE, 
-                    os.path.abspath("torch_hpim/csrc"),
+                    os.path.abspath("torch_pim/csrc"),
                     os.path.join(BASE_DIR),
                 ],
                 library_dirs=[PIMBLAS_LIB],

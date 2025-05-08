@@ -1,7 +1,7 @@
 #include <ATen/DeviceGuard.h>
 #include <ATen/Tensor.h>
 
-#include "torch_hpim/csrc/_logging/Logger.h"
+#include "torch_pim/csrc/_logging/Logger.h"
 
 
 // basic dummy copy_() function, so we can copy from the custom device to/from CPU

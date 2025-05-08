@@ -40,6 +40,6 @@ def _load_extension():
 
 _load_extension()
 
-from .hpim.hpim_optimize import optimize
-from .hpim import ops
+from .pim.pim_optimize import optimize
+from .pim import ops
 
