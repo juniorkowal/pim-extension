@@ -5,31 +5,31 @@
 
 
 // A dummy storageImpl for our custom device, that secretly uses the CPU
-c10::intrusive_ptr<c10::StorageImpl> make_custom_storage_impl(c10::StorageImpl::use_byte_size_t,
+c10::intrusive_ptr<c10::StorageImpl> make_pim_storage_impl(c10::StorageImpl::use_byte_size_t,
                                                                 c10::SymInt size_bytes,
                                                                 c10::DataPtr data_ptr,
                                                                 c10::Allocator* allocator,
                                                                 bool resizable) {
-    c10::intrusive_ptr<c10::StorageImpl> custom_storage_impl;
+    c10::intrusive_ptr<c10::StorageImpl> pim_storage_impl;
     if (data_ptr == nullptr) {
-        custom_storage_impl = c10::make_intrusive<c10::StorageImpl>(
+        pim_storage_impl = c10::make_intrusive<c10::StorageImpl>(
         c10::StorageImpl::use_byte_size_t(), size_bytes, allocator, resizable);
     } 
     else {
-        custom_storage_impl = c10::make_intrusive<c10::StorageImpl>(
+        pim_storage_impl = c10::make_intrusive<c10::StorageImpl>(
         c10::StorageImpl::use_byte_size_t(), size_bytes, std::move(data_ptr), allocator, resizable);
     }
-    return custom_storage_impl;
+    return pim_storage_impl;
 }
 
 // Register our dummy storageImpl create method.
-void custom_storage_registry() {
-    c10::SetStorageImplCreate(c10::DeviceType::PrivateUse1, &make_custom_storage_impl);
+void pim_storage_registry() {
+    c10::SetStorageImplCreate(c10::DeviceType::PrivateUse1, &make_pim_storage_impl);
 }
 
 
 // Some set operations for the basic use case
-at::Tensor& custom_set_source_Storage(at::Tensor& result, c10::Storage src) {
+at::Tensor& pim_set_source_Storage(at::Tensor& result, c10::Storage src) {
     int64_t new_size = static_cast<int64_t>(src.nbytes() / result.dtype().itemsize());
     c10::IntArrayRef stride = {};
     result.unsafeGetTensorImpl()->set_storage_offset(0);

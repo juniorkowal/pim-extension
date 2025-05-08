@@ -5,6 +5,6 @@
 
 
 // pseudo-random number generator ?
-const at::Generator& default_generator(c10::DeviceIndex device_index) {
+const at::Generator& pim_generator(c10::DeviceIndex device_index) {
   return at::globalContext().defaultGenerator(at::Device(c10::DeviceType::PrivateUse1, device_index));;
 }

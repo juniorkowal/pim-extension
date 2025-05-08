@@ -8,7 +8,7 @@ from setuptools import find_packages, setup
 from torch.utils.cpp_extension import BuildExtension, CppExtension
 from pathlib import Path
 
-BUILD_DEPS = True
+BUILD_DEPS = False
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 THIRD_PARTY_PATH = os.path.join(BASE_DIR, "third_party")

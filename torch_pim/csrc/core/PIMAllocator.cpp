@@ -9,11 +9,10 @@
 
 
 // A dummy allocator for our custom device, that secretly uses the CPU
-struct DummyCustomAllocator final : at::Allocator {
-  DummyCustomAllocator() = default;
+struct PIMAllocator final : at::Allocator {
+  PIMAllocator() = default;
 
   at::DataPtr allocate(size_t nbytes) override { // const override?
-    // std::cout << "Custom allocator: " << nbytes << std::endl;
     void *data = c10::alloc_cpu(nbytes); // allocate on cpu for now
     show_info("Custom allocator's allocate() called! Allocate " << nbytes << " at [" << data << "]");
     return {data, data, &ReportAndDelete, at::Device(at::DeviceType::PrivateUse1, 0)}; // just set current device to privateuse:0
@@ -37,5 +36,5 @@ struct DummyCustomAllocator final : at::Allocator {
 };
   
 // Register our dummy allocator
-static DummyCustomAllocator global_custom_alloc;
-REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &global_custom_alloc);
+static PIMAllocator global_pim_alloc;
+REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &global_pim_alloc);

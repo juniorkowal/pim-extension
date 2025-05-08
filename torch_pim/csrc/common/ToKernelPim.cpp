@@ -5,7 +5,7 @@
 
 
 // basic dummy copy_() function, so we can copy from the custom device to/from CPU
-at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool non_blocking) {
+at::Tensor pim_copy_from(const at::Tensor& self, const at::Tensor& dst, bool non_blocking) {
     const at::OptionalDeviceGuard device_guard(at::device_of(self));
     show_info("Custom aten::_copy_from() called! SELF: " << self.is_cpu() << " DESTINATION: " << dst.is_cpu());
     TORCH_CHECK(self.is_cpu() || self.device().type() == c10::DeviceType::PrivateUse1, "Dummy test only allows copy from cpu -> dummy device.");
@@ -20,6 +20,6 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
     return dst;
   }
 
-at::Tensor custom__copy_from_and_resize(const at::Tensor& self, const at::Tensor& dst) {
+at::Tensor pim_copy_from_and_resize(const at::Tensor& self, const at::Tensor& dst) {
     return dst.copy_(self, false);
 }

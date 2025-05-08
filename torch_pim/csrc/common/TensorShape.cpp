@@ -5,7 +5,7 @@
 #include "torch_pim/csrc/_logging/Logger.h"
 
 
-at::Tensor custom_as_strided(
+at::Tensor pim_as_strided(
     const at::Tensor& self,
     c10::IntArrayRef size,
     c10::IntArrayRef stride,
@@ -28,7 +28,7 @@ at::Tensor custom_as_strided(
     return result;
 }
 
-at::Tensor custom_view(const at::Tensor& self, c10::IntArrayRef size) {
+at::Tensor pim_view(const at::Tensor& self, c10::IntArrayRef size) {
     show_info("Custom view called!");
     auto inferred_size = at::infer_size(size, self.numel());
     auto stride = at::detail::computeStride(self.sizes(), self.strides(), inferred_size);

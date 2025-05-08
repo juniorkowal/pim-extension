@@ -6,10 +6,10 @@
 static uint16_t CURR_DEVICE = -1;
 
 
-struct DummyDeviceGuardImpl final : public c10::impl::DeviceGuardImplInterface {
+struct PIMDeviceGuardImpl final : public c10::impl::DeviceGuardImplInterface {
     static constexpr c10::DeviceType static_type = c10::DeviceType::PrivateUse1;
-    DummyDeviceGuardImpl() {}
-    explicit DummyDeviceGuardImpl(c10::DeviceType t) {
+    PIMDeviceGuardImpl() {}
+    explicit PIMDeviceGuardImpl(c10::DeviceType t) {
       TORCH_INTERNAL_ASSERT(t == c10::DeviceType::PrivateUse1);
     }
     at::DeviceType type() const override {
@@ -82,14 +82,14 @@ struct DummyDeviceGuardImpl final : public c10::impl::DeviceGuardImplInterface {
     }
 };
   
-struct DummyGuard {
-  explicit DummyGuard() = delete;
-  explicit DummyGuard(at::DeviceIndex device_index) : guard_(device_index) {}
-  explicit DummyGuard(at::Device device) : guard_(device) {}
-  DummyGuard(const DummyGuard&) = delete;
-  DummyGuard& operator=(const DummyGuard&) = delete;
-  DummyGuard(DummyGuard&& other) = delete;
-  DummyGuard& operator=(DummyGuard&& other) = delete;
+struct PIMGuard {
+  explicit PIMGuard() = delete;
+  explicit PIMGuard(at::DeviceIndex device_index) : guard_(device_index) {}
+  explicit PIMGuard(at::Device device) : guard_(device) {}
+  PIMGuard(const PIMGuard&) = delete;
+  PIMGuard& operator=(const PIMGuard&) = delete;
+  PIMGuard(PIMGuard&& other) = delete;
+  PIMGuard& operator=(PIMGuard&& other) = delete;
 
   void set_device(at::Device device) {
     guard_.set_device(device);
@@ -112,9 +112,9 @@ struct DummyGuard {
   }
 
   private:
-    c10::impl::InlineDeviceGuard<DummyDeviceGuardImpl> guard_;
+    c10::impl::InlineDeviceGuard<PIMDeviceGuardImpl> guard_;
 };
 
 
-C10_REGISTER_GUARD_IMPL(PrivateUse1, DummyDeviceGuardImpl);
+C10_REGISTER_GUARD_IMPL(PrivateUse1, PIMDeviceGuardImpl);
   
