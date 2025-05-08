@@ -1,16 +1,17 @@
-#include <torch/script.h>
-#include <vector>
+#include <ATen/ATen.h>
+
 #include "pimblas.h"
 #include "torch_hpim/csrc/_logging/Logger.h"
+
 
 namespace pim {
 
 at::Tensor add(const at::Tensor& self, const at::Tensor& other, const c10::Scalar& alpha=1) {
     // TORCH_CHECK(self.scalar_type() == at::kFloat && other.scalar_type() == at::kFloat,
     //            "Only float32 tensors supported");
-    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1 && 
-                other.device().type() == c10::DeviceType::PrivateUse1,
-                "Both tensors must be on PrivateUse1 device");
+    // TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1 && 
+    //             other.device().type() == c10::DeviceType::PrivateUse1,
+    //             "Both tensors must be on PrivateUse1 device");
     auto common_shape = at::infer_size(self.sizes(), other.sizes());
     at::Tensor output = at::empty(common_shape, self.options());
 

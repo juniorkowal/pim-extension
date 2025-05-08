@@ -1,5 +1,5 @@
-#include <torch/script.h>
-#include <vector>
+#include <ATen/ATen.h>
+
 #include "pimblas.h"
 #include "torch_hpim/csrc/_logging/Logger.h"
 
