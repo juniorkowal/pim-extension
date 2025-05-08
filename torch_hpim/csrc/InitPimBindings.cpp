@@ -2,8 +2,6 @@
 #include <torch/extension.h>
 #include "torch_hpim/csrc/_logging/Logger.h"
 
-
-
 #include <c10/core/Allocator.h>
 #include <c10/core/ScalarType.h>
 #include <c10/core/impl/DeviceGuardImplInterface.h>
@@ -72,22 +70,12 @@ at::Tensor addmm(
     const at::Scalar& alpha = 1
 );
 at::Tensor mul(const at::Tensor& self, const at::Tensor& other);
+at::Tensor t(const at::Tensor & self); 
 } // namespace pim
 
 void custom_cpu_fallback(const c10::OperatorHandle& op, torch::jit::Stack* stack) {
     show_info("UPMEM fallback: Operator '" << op.schema().operator_name() << "' not supported. Switching to CPU.");
     at::native::cpu_fallback(op, stack);
-}
-
-namespace pim { // hacky solution so that linear layer works correctly with device
-// aten::t(Tensor(a) self) -> Tensor(a)
-at::Tensor t(const at::Tensor & self) {
-    const auto orig_device = self.device();
-    at::Tensor result = self.cpu().t().contiguous().to(orig_device);
-    show_info("Transposed tensor ...");
-    return result;
-}
-
 }
 
 at::Tensor custom_view(const at::Tensor& self, c10::IntArrayRef size) {

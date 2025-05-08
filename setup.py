@@ -8,6 +8,7 @@ from setuptools import find_packages, setup
 from torch.utils.cpp_extension import BuildExtension, CppExtension
 from pathlib import Path
 
+BUILD_DEPS = True
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 THIRD_PARTY_PATH = os.path.join(BASE_DIR, "third_party")
@@ -17,6 +18,7 @@ PIMBLAS_BUILD_DIR = os.path.join(PIMBLAS_DIR, "build")
 PIMBLAS_INSTALL_DIR = os.path.join(PIMBLAS_DIR, "install")
 PIMBLAS_INCLUDE = os.path.join(PIMBLAS_INSTALL_DIR, "include")
 PIMBLAS_LIB = os.path.join(PIMBLAS_INSTALL_DIR, "lib")
+
 UPMEMSDK_DIR = os.path.join(THIRD_PARTY_PATH, "upmemsdk")
 
 
@@ -117,9 +119,10 @@ def build_pimblas():
 
 
 def main():
-    # check_submodules()
-    # build_upmemsdk()
-    # build_pimblas() # TODO: make it so that we include pimblas in package and use it from there
+    if BUILD_DEPS:
+        check_submodules()
+        build_upmemsdk()
+        build_pimblas() # TODO: make it so that we include pimblas in package and use it from there
 
     packages = find_packages(include=['torch_hpim', 'torch_hpim.*'])
     setup(
