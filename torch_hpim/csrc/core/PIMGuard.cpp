@@ -25,7 +25,6 @@
 #include <unordered_map>
 
 
-
 static uint16_t CURR_DEVICE = -1;
 
 

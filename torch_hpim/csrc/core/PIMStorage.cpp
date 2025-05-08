@@ -49,10 +49,6 @@ void custom_storage_registry() {
 }
 
 
-at::Tensor custom__copy_from_and_resize(const at::Tensor& self, const at::Tensor& dst) {
-    return dst.copy_(self, false);
-}
-
 // Some set operations for the basic use case
 at::Tensor& custom_set_source_Storage(at::Tensor& result, c10::Storage src) {
     int64_t new_size = static_cast<int64_t>(src.nbytes() / result.dtype().itemsize());

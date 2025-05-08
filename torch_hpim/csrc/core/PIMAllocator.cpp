@@ -27,7 +27,6 @@
 #include "torch_hpim/csrc/_logging/Logger.h"
 
 
-
 // A dummy allocator for our custom device, that secretly uses the CPU
 struct DummyCustomAllocator final : at::Allocator {
   DummyCustomAllocator() = default;
@@ -59,51 +58,3 @@ struct DummyCustomAllocator final : at::Allocator {
 // Register our dummy allocator
 static DummyCustomAllocator global_custom_alloc;
 REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &global_custom_alloc);
-  
-
-at::Tensor custom_empty_memory_format(at::IntArrayRef size, 
-                                      c10::optional<at::ScalarType> dtype, 
-                                      c10::optional<at::Layout> layout, 
-                                      c10::optional<at::Device> device, 
-                                      c10::optional<bool> pin_memory, 
-                                      c10::optional<at::MemoryFormat> memory_format) {
-  const at::OptionalDeviceGuard device_guard(device);
-  show_info("Custom aten::empty.memory_format() called!");
-  constexpr c10::DispatchKeySet private_use_ks(c10::DispatchKey::PrivateUse1);
-  return at::detail::empty_generic(size, &global_custom_alloc, private_use_ks, c10::dtype_or_default(dtype), memory_format);
-}
-
-at::Tensor custom_empty_strided(at::IntArrayRef size, 
-                                at::IntArrayRef stride, 
-                                c10::optional<c10::ScalarType> dtype, 
-                                c10::optional<at::Layout> layout, 
-                                c10::optional<at::Device> device, 
-                                c10::optional<bool> pin_memory) {
-  const at::OptionalDeviceGuard device_guard(device);
-  show_info("Custom aten::empty_strided() called!");
-  constexpr c10::DispatchKeySet private_use_ks(c10::DispatchKey::PrivateUse1);
-  return at::detail::empty_strided_generic(size, stride, &global_custom_alloc, private_use_ks, c10::dtype_or_default(dtype));
-}
-
-at::Tensor & custom_fill__scalar(at::Tensor & self, const at::Scalar & value) {
-  const at::OptionalDeviceGuard device_guard(at::device_of(self));
-  // Not bothering to implement.
-  // Should fill the tensor's data with "value".
-  return self;
-}
-
-// basic dummy copy_() function, so we can copy from the custom device to/from CPU
-at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool non_blocking) {
-  const at::OptionalDeviceGuard device_guard(at::device_of(self));
-  show_info("Custom aten::_copy_from() called! SELF: " << self.is_cpu() << " DESTINATION: " << dst.is_cpu());
-  TORCH_CHECK(self.is_cpu() || self.device().type() == c10::DeviceType::PrivateUse1, "Dummy test only allows copy from cpu -> dummy device.");
-  TORCH_CHECK(dst.is_cpu() || dst.device().type() == c10::DeviceType::PrivateUse1, "Dummy test only allows copy from cpu -> dummy device.");
-
-  // Some dummy asserts for the basic use case: inputs are the same size / dtype, all contiguous.
-  TORCH_CHECK(self.sizes() == dst.sizes());
-  TORCH_CHECK(self.scalar_type() == dst.scalar_type());
-  TORCH_CHECK(self.is_contiguous() && dst.is_contiguous());
-
-  std::memcpy(dst.storage().data_ptr().get(), self.storage().data_ptr().get(), self.storage().nbytes());
-  return dst;
-}

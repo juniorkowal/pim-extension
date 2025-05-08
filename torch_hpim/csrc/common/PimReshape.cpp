@@ -24,8 +24,9 @@
 
 #include <unordered_map>
 
+#include "torch_hpim/csrc/_logging/Logger.h"
 
-// pseudo-random number generator ?
-const at::Generator& default_generator(c10::DeviceIndex device_index) {
-  return at::globalContext().defaultGenerator(at::Device(c10::DeviceType::PrivateUse1, device_index));;
+
+at::Tensor custom_reshape(const at::Tensor & self, at::IntArrayRef shape) {
+    return at::_ops::reshape::call(self, c10::fromIntArrayRefSlow(shape));
 }
