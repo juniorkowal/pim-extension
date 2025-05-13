@@ -31,6 +31,7 @@ struct PIMAllocator final : at::Allocator {
   }
 
   void copy_data(void* dest, const void* src, std::size_t count) const override {
+    // show_info("Dest: " << dest << " Src: " << src << " Count: " << count);
     default_copy_data(dest, src, count);
   }
 };

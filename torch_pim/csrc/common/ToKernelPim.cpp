@@ -14,6 +14,7 @@ at::Tensor pim_copy_from(const at::Tensor& self, const at::Tensor& dst, bool non
     // Some dummy asserts for the basic use case: inputs are the same size / dtype, all contiguous.
     TORCH_CHECK(self.sizes() == dst.sizes());
     TORCH_CHECK(self.scalar_type() == dst.scalar_type());
+    // show_info("self.is_contiguous: " << self.is_contiguous() << " dst.is_contiguous:" << dst.is_contiguous());
     TORCH_CHECK(self.is_contiguous() && dst.is_contiguous());
   
     std::memcpy(dst.storage().data_ptr().get(), self.storage().data_ptr().get(), self.storage().nbytes());

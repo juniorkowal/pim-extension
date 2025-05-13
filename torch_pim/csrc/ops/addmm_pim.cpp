@@ -13,14 +13,26 @@ at::Tensor addmm(const at::Tensor& self, // bias
                    const at::Scalar& alpha=1) { // should we do it this way, or should we invoke kernels here?
 
     show_info("Invoking addmm operation ...");
-    // show_info("sizes - mat1: [" << mat1.size(0) << ", " << mat1.size(1) 
-    // << "], mat2: [" << mat2.size(0) << ", " << mat2.size(1) 
-    // << "], self: [" << self.size(0) << "]");
-    // at::Tensor out = mm(mat1, mat2);
-    // at::Tensor result = add(self, out);
-    at::Tensor result = add(self, mm(mat1, mat2));
+    at::Tensor mm_out = mm(mat1, mat2);
+
+    auto common_shape = at::infer_size(mm_out.sizes(), self.sizes());
+    at::Tensor output = at::empty(common_shape, self.options());
+
+    at::Tensor a_contig = self.cpu().expand(common_shape).contiguous();
+    at::Tensor b_contig = mm_out.cpu().expand(common_shape).contiguous();
+
+    show_info("Using vec_add_f for same size tensors ...");
+    vec_add_f(
+        a_contig.data_ptr<float>(),
+        b_contig.data_ptr<float>(),
+        output.data_ptr<float>(),
+        output.numel()
+    );
+    show_info("vec_add_f success ...");
+
+
     show_info("addmm success ...");
-    return result;
+    return output;
 }
 
 } //namespace pim

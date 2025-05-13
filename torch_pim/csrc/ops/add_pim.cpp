@@ -6,12 +6,13 @@
 
 namespace pim {
 
-at::Tensor add(const at::Tensor& self, const at::Tensor& other, const c10::Scalar& alpha=1) {
-    // TORCH_CHECK(self.scalar_type() == at::kFloat && other.scalar_type() == at::kFloat,
-    //            "Only float32 tensors supported");
-    // TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1 && 
-    //             other.device().type() == c10::DeviceType::PrivateUse1,
-    //             "Both tensors must be on PrivateUse1 device");
+at::Tensor& add(const at::Tensor& self, const at::Tensor& other, const c10::Scalar& alpha, at::Tensor& out) {
+    if (self.scalar_type() != at::kFloat && other.scalar_type() != at::kFloat) { // for scalars: add_.Scalar?
+        show_info("[add operator] Falling back to CPU for non-float inputs...");
+        at::Tensor cpu_out = at::add(self.cpu(), other.cpu(), alpha);
+        out.copy_(cpu_out.to(out.device()));
+        return out;
+    }
     auto common_shape = at::infer_size(self.sizes(), other.sizes());
     at::Tensor output = at::empty(common_shape, self.options());
 

@@ -9,9 +9,9 @@ namespace pim { // hacky solution so that linear layer works correctly with devi
 at::Tensor t(const at::Tensor & self) {
     const auto orig_device = self.device();
     show_info("Transposing tensor (t op)...");
-    at::Tensor result = self.cpu().t().contiguous().to(orig_device);
+    at::Tensor output = self.cpu().t().contiguous().to(orig_device);
     show_info("Tensor transposed (t op)...");
-    return result;
+    return output;
 }
     
 }
