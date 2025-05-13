@@ -14,7 +14,6 @@ at::Tensor& add(const at::Tensor& self, const at::Tensor& other, const c10::Scal
         return out;
     }
     auto common_shape = at::infer_size(self.sizes(), other.sizes());
-    at::Tensor output = at::empty(common_shape, self.options());
 
     at::Tensor a_contig = self.expand(common_shape).contiguous();
     at::Tensor b_contig = other.expand(common_shape).contiguous();
@@ -23,11 +22,11 @@ at::Tensor& add(const at::Tensor& self, const at::Tensor& other, const c10::Scal
     vec_add_f(
         a_contig.data_ptr<float>(),
         b_contig.data_ptr<float>(),
-        output.data_ptr<float>(),
-        output.numel()
+        out.data_ptr<float>(),
+        out.numel()
     );
     show_info("vec_add_f success ...");
-    return output;
+    return out;
 }
 
 }
