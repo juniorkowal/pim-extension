@@ -32,10 +32,20 @@ def _load_extension():
         print("If you installed from source, you can use: source `python -m upmemsdk`")
         raise RuntimeError("UPMEM_HOME not found.")
 
+    kernel_dir = os.path.join(dir_path, "kernels")
+    if not os.path.exists(kernel_dir):
+        raise FileNotFoundError(f"Kernel directory not found at: {kernel_dir}")
+    
+    kernel_files = glob.glob(os.path.join(kernel_dir, "*.kernel"))
+    if not kernel_files:
+        raise FileNotFoundError(f"No kernel files (*.kernel) found in: {kernel_dir}")
+    
+    os.environ["PIMBLAS_KERNEL_DIR"] = str(kernel_dir)
+
     torch.ops.load_library(lib_path[0])
 
     torch.utils.backend_registration.rename_privateuse1_backend("upmem")
-    torch._register_device_module("upmem", UpmemModule) # TODO: this should be like ascend; torch_hpim.hpim instead of UpmemModule
+    torch._register_device_module("upmem", UpmemModule) # TODO: change dummy UpmemModule to our extension folder torch_pim.pim
     #torch.utils.generate_methods_for_privateuse1_backend(for_storage=True)
 
 _load_extension()

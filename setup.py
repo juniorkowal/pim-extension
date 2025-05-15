@@ -1,23 +1,25 @@
-import glob
 import os
 import subprocess
 import sys
 import time
+import shutil 
 
 from setuptools import find_packages, setup
 from torch.utils.cpp_extension import BuildExtension, CppExtension
 from pathlib import Path
 
 PACKAGE_NAME = "torch_pim"
-BUILD_DEPS = True
 VERSION = "0.1"
+BUILD_DEPS = True
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 THIRD_PARTY_PATH = os.path.join(BASE_DIR, "third_party")
 
-PIMBLAS_BUILD_DIR = os.path.join(THIRD_PARTY_PATH, "libpimblas/build")
-PIMBLAS_INSTALL_DIR = os.path.join(THIRD_PARTY_PATH, "libpimblas/install")
-PIMBLAS_LIB = os.path.join(PIMBLAS_INSTALL_DIR, "lib")
+PIMBLAS_BUILD = os.path.join(THIRD_PARTY_PATH, "libpimblas/build")
+PIMBLAS_INSTALL = os.path.join(THIRD_PARTY_PATH, "libpimblas/install")
+PIMBLAS_LIB = os.path.join(PIMBLAS_INSTALL, "lib")
+
+PACKAGE_LIB = os.path.join(BASE_DIR, "src", PACKAGE_NAME, "lib")
 
 UPMEMSDK_DIR = os.path.join(THIRD_PARTY_PATH, "upmemsdk")
 
@@ -92,57 +94,80 @@ def build_upmemsdk():
         raise RuntimeError("UPMEM SDK installation failed - no env script returned")
     setup_upmem_env(env_script)
 
-
 def build_pimblas():
     try:
-        os.makedirs(PIMBLAS_BUILD_DIR, exist_ok=True)
+        os.makedirs(PIMBLAS_BUILD, exist_ok=True)
         subprocess.check_call([
             "cmake",
-            f"-DCMAKE_INSTALL_PREFIX={os.path.abspath(PIMBLAS_INSTALL_DIR)}",
+            f"-DCMAKE_INSTALL_PREFIX={os.path.abspath(PIMBLAS_INSTALL)}",
             ".."
-        ], cwd=PIMBLAS_BUILD_DIR)
-        subprocess.check_call(["make", "-j"], cwd=PIMBLAS_BUILD_DIR)
-        subprocess.check_call(["make", "install"], cwd=PIMBLAS_BUILD_DIR)
-        if not os.path.exists(os.path.join(PIMBLAS_LIB, "libpimblas.so")):
-            raise RuntimeError("pimblas build failed - library not found")
+        ], cwd=PIMBLAS_BUILD)
+        subprocess.check_call(["make", "-j"], cwd=PIMBLAS_BUILD)
+        subprocess.check_call(["make", "install"], cwd=PIMBLAS_BUILD)
+        
+        lib_src = os.path.join(PIMBLAS_INSTALL, "lib", "libpimblas.so")
+        os.makedirs(PACKAGE_LIB, exist_ok=True)
+        shutil.copy(lib_src, PACKAGE_LIB)
+        print(f"Copied libpimblas.so to {PACKAGE_LIB}")
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Failed to build pimblas: {e}")
+    kernel_src_dir = os.path.join(PIMBLAS_BUILD, "kernels")
+    package_kernel_dir = os.path.join(BASE_DIR, "src", PACKAGE_NAME, "kernels")
+    os.makedirs(package_kernel_dir, exist_ok=True)
+    for kernel_file in Path(kernel_src_dir).glob("*.kernel"):
+        shutil.copy(kernel_file, package_kernel_dir)
+    print(f"Copied kernel files to {package_kernel_dir}")
+
+
+def clean():
+    try:
+        shutil.rmtree('build', ignore_errors=True)
+        shutil.rmtree('dist', ignore_errors=True)
+        shutil.rmtree(f'{PACKAGE_NAME}.egg-info', ignore_errors=True)
+    except Exception as e:
+        print(f"Cleanup failed: {e}")
 
 
 def main():
+    clean()
+
     if BUILD_DEPS:
         check_submodules()
         build_upmemsdk()
-        build_pimblas() # TODO: make it so that we include pimblas in package and use it from there
+        build_pimblas()
 
     include_directories = [
         BASE_DIR,
-        os.path.join(BASE_DIR, "third_party/libpimblas/install/include")
+        os.path.join(PIMBLAS_INSTALL, "include")
     ]
-
+    package_data = {
+        PACKAGE_NAME: [
+            'lib/*.so',
+            'kernels/*.kernel'
+        ]
+    }
     setup(
         name=PACKAGE_NAME,
         version=VERSION,
         packages=find_packages(where="src"),
-        package_dir = {"": "src"},
+        package_dir={"": "src"},
+        package_data= package_data,
         ext_modules=[
             CppExtension(
                 name=f'{PACKAGE_NAME}._C',
                 sources=get_csrc(),
                 include_dirs=include_directories,
+                library_dirs=[PACKAGE_LIB],
                 libraries=["pimblas"],
-                extra_compile_args=['-std=c++17', '-lstdc++'],
-                runtime_library_dirs=[PIMBLAS_LIB],
-                extra_link_args=['-L' + PIMBLAS_LIB],
+                extra_compile_args=['-std=c++17'],
+                extra_link_args=[
+                    '-Wl,-rpath,$ORIGIN/lib'
+                ],
             ),
         ],
         cmdclass={'build_ext': BuildExtension},
-        install_requires=[
-            'torch',
-            'numpy'
-        ],
+        install_requires=['torch', 'numpy'],
     )
-
 
 if __name__ == "__main__":
     main()

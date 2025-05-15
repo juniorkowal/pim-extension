@@ -176,4 +176,4 @@ logs/
 # all build and install folders
 **/build/
 **/install/
-
+**/kernels/
