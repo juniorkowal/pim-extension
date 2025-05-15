@@ -1,6 +1,6 @@
 #include <ATen/Tensor.h>
 
-#include "torch_pim/csrc/_logging/Logger.h"
+#include "src/torch_pim/csrc/_logging/Logger.h"
 
 
 at::Tensor pim_reshape(const at::Tensor & self, at::IntArrayRef shape) {

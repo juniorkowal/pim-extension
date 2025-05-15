@@ -8,15 +8,15 @@ from setuptools import find_packages, setup
 from torch.utils.cpp_extension import BuildExtension, CppExtension
 from pathlib import Path
 
-BUILD_DEPS = False
+PACKAGE_NAME = "torch_pim"
+BUILD_DEPS = True
+VERSION = "0.1"
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 THIRD_PARTY_PATH = os.path.join(BASE_DIR, "third_party")
 
-PIMBLAS_DIR = os.getenv("PIMBLAS_DIR", os.path.join(THIRD_PARTY_PATH, 'libpimblas'))
-PIMBLAS_BUILD_DIR = os.path.join(PIMBLAS_DIR, "build")
-PIMBLAS_INSTALL_DIR = os.path.join(PIMBLAS_DIR, "install")
-PIMBLAS_INCLUDE = os.path.join(PIMBLAS_INSTALL_DIR, "include")
+PIMBLAS_BUILD_DIR = os.path.join(THIRD_PARTY_PATH, "libpimblas/build")
+PIMBLAS_INSTALL_DIR = os.path.join(THIRD_PARTY_PATH, "libpimblas/install")
 PIMBLAS_LIB = os.path.join(PIMBLAS_INSTALL_DIR, "lib")
 
 UPMEMSDK_DIR = os.path.join(THIRD_PARTY_PATH, "upmemsdk")
@@ -51,18 +51,9 @@ def check_submodules():
             print("Please run:\n\tgit submodule init && git submodule update")
             sys.exit(1)
 
-# note: on ascend they have op-plugin repo on gitee with torch-ready operators
-# we have libpimblas and we are making operators inside extension
-# def add_ops_files(base_dir, file_list):
-#     # add ops header files
-#     plugin_path = os.path.join(base_dir, 'third_party/op-plugin/op_plugin/include')
-#     if os.path.exists(plugin_path):
-#         file_list.append('third_party/op-plugin/op_plugin/include/*.h')
-#     return
 
-
-def get_src():
-    csrc_dir = os.path.join(BASE_DIR, "torch_pim", "csrc")
+def get_csrc():
+    csrc_dir = os.path.join(BASE_DIR, "src", PACKAGE_NAME, "csrc")
     return sorted([str(p) for p in Path(csrc_dir).rglob("*.cpp")])
 
 
@@ -124,30 +115,21 @@ def main():
         build_upmemsdk()
         build_pimblas() # TODO: make it so that we include pimblas in package and use it from there
 
-    packages = find_packages(include=['torch_pim', 'torch_pim.*'])
+    include_directories = [
+        BASE_DIR,
+        os.path.join(BASE_DIR, "third_party/libpimblas/install/include")
+    ]
+
     setup(
-        name='torch_pim',
-        version='0.1',
-        packages=packages,
-        package_dir={
-            'torch_pim': 'torch_pim',
-        },
-        package_data={
-            'torch_pim': [
-                'lib/pimblas/lib/*.so*',
-                'lib/pimblas/include/*.h'
-            ],
-        },
+        name=PACKAGE_NAME,
+        version=VERSION,
+        packages=find_packages(where="src"),
+        package_dir = {"": "src"},
         ext_modules=[
             CppExtension(
-                name='torch_pim._C',
-                sources=get_src(),
-                include_dirs=[
-                    PIMBLAS_INCLUDE, 
-                    os.path.abspath("torch_pim/csrc"),
-                    os.path.join(BASE_DIR),
-                ],
-                library_dirs=[PIMBLAS_LIB],
+                name=f'{PACKAGE_NAME}._C',
+                sources=get_csrc(),
+                include_dirs=include_directories,
                 libraries=["pimblas"],
                 extra_compile_args=['-std=c++17', '-lstdc++'],
                 runtime_library_dirs=[PIMBLAS_LIB],

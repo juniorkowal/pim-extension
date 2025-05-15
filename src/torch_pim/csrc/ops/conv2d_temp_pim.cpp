@@ -1,6 +1,6 @@
 #include <ATen/ATen.h>
 
-#include "torch_pim/csrc/_logging/Logger.h"
+#include "src/torch_pim/csrc/_logging/Logger.h"
 
 namespace pim {
 

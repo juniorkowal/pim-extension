@@ -1,7 +1,7 @@
 #include <ATen/core/Generator.h>
 #include <ATen/Context.h>
 
-#include "torch_pim/csrc/_logging/Logger.h"
+#include "src/torch_pim/csrc/_logging/Logger.h"
 
 
 // pseudo-random number generator ?

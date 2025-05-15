@@ -1,6 +1,6 @@
 #include <c10/core/impl/InlineDeviceGuard.h>
 
-#include "torch_pim/csrc/_logging/Logger.h"
+#include "src/torch_pim/csrc/_logging/Logger.h"
 
 
 static uint16_t CURR_DEVICE = -1;

@@ -1,6 +1,6 @@
 #include <ATen/native/CPUFallback.h>
 
-#include "torch_pim/csrc/_logging/Logger.h"
+#include "src/torch_pim/csrc/_logging/Logger.h"
 
 
 void pim_cpu_fallback(const c10::OperatorHandle& op, torch::jit::Stack* stack) {

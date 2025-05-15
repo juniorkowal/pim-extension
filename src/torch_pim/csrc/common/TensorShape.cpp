@@ -2,7 +2,7 @@
 #include <ATen/Tensor.h>
 #include <ATen/InferSize.h>
 
-#include "torch_pim/csrc/_logging/Logger.h"
+#include "src/torch_pim/csrc/_logging/Logger.h"
 
 
 at::Tensor pim_as_strided(

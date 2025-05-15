@@ -1,7 +1,7 @@
 #include <ATen/Tensor.h>
 
-#include "torch_pim/csrc/_logging/Logger.h"
-#include "torch_pim/csrc/core/PIMAllocator.cpp"
+#include "src/torch_pim/csrc/_logging/Logger.h"
+#include "src/torch_pim/csrc/core/PIMAllocator.cpp"
 
 
 at::Tensor pim_empty_memory_format(at::IntArrayRef size, 

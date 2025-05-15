@@ -1,7 +1,7 @@
 #include <ATen/ATen.h>
 
 #include "pimblas.h"
-#include "torch_pim/csrc/_logging/Logger.h"
+#include "src/torch_pim/csrc/_logging/Logger.h"
 
 
 namespace pim { // hacky solution so that linear layer works correctly with device

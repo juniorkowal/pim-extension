@@ -1,7 +1,7 @@
 #include <torch/script.h>
 #include <torch/extension.h>
 
-#include "torch_pim/csrc/_logging/Logger.h"
+#include "src/torch_pim/csrc/_logging/Logger.h"
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ device ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
