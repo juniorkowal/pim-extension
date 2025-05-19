@@ -7,6 +7,10 @@ import shutil
 from setuptools import find_packages, setup
 from torch.utils.cpp_extension import BuildExtension, CppExtension
 from pathlib import Path
+import distutils.command.clean
+import glob
+import re
+
 
 PACKAGE_NAME = "torch_pim"
 VERSION = "0.1"
@@ -119,18 +123,35 @@ def build_pimblas():
     print(f"Copied kernel files to {package_kernel_dir}")
 
 
-def clean():
-    try:
-        shutil.rmtree('build', ignore_errors=True)
-        shutil.rmtree('dist', ignore_errors=True)
-        shutil.rmtree(f'{PACKAGE_NAME}.egg-info', ignore_errors=True)
-    except Exception as e:
-        print(f"Cleanup failed: {e}")
+class Clean(distutils.command.clean.clean):
+
+    def run(self):
+        f_ignore = open('.gitignore', 'r')
+        ignores = f_ignore.read()
+        pat = re.compile(r'^#( BEGIN NOT-CLEAN-FILES )?')
+        for wildcard in filter(None, ignores.split('\n')):
+            match = pat.match(wildcard)
+            if match:
+                if match.group(1):
+                    # Marker is found and stop reading .gitignore.
+                    break
+                # Ignore lines which begin with '#'.
+            else:
+                for filename in glob.glob(wildcard):
+                    if os.path.islink(filename):
+                        raise RuntimeError(f"Failed to remove path: {filename}")
+                    if os.path.exists(filename):
+                        try:
+                            shutil.rmtree(filename, ignore_errors=True)
+                        except Exception as err:
+                            raise RuntimeError(f"Failed to remove path: {filename}") from err
+        f_ignore.close()
+
+        # It's an old-style class in Python 2.7...
+        distutils.command.clean.clean.run(self)
 
 
 def main():
-    clean()
-
     if BUILD_DEPS:
         check_submodules()
         build_upmemsdk()
@@ -165,7 +186,10 @@ def main():
                 ],
             ),
         ],
-        cmdclass={'build_ext': BuildExtension},
+        cmdclass={
+            'build_ext': BuildExtension,
+            'clean': Clean
+        },
         install_requires=['torch', 'numpy'],
     )
 
