@@ -5,7 +5,7 @@ import os
 
 import torch
 import torch.utils.backend_registration
-import torch_pim
+from . import pim
 
 
 dir_path = os.path.dirname(__file__)
@@ -31,7 +31,7 @@ os.environ["PIMBLAS_KERNEL_DIR"] = str(kernel_dir)
 torch.ops.load_library(lib_path[0])
 
 torch.utils.backend_registration.rename_privateuse1_backend("upmem")
-torch._register_device_module("upmem", torch_pim.pim)
+torch._register_device_module("upmem", pim)
 
 
 

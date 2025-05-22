@@ -35,10 +35,17 @@ at::Tensor convolution(const at::Tensor& input,
                         const bool transposed,
                         const c10::IntArrayRef output_padding,
                         const int64_t groups);
-at::Tensor& softmax_(const at::Tensor& self,
-                    int64_t dim,
-                    std::optional<at::ScalarType> dtype,
-                    at::Tensor& out);
+at::Tensor _softmax_impl(const at::Tensor& self, 
+                        int64_t dim, 
+                        bool half_to_float);
+at::Tensor& softmax_out_impl(const at::Tensor& self,
+                            int64_t dim,
+                            bool half_to_float,
+                            at::Tensor& out);
+at::Tensor softmax_int_impl(const at::Tensor& self,
+                            int64_t dim,
+                            c10::optional<at::ScalarType> dtype);
+
 } // namespace pim
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ common ops ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -71,7 +78,9 @@ TORCH_LIBRARY(torch_pim, m) {
     m.def("mul(Tensor self, Tensor other) -> Tensor");
     m.def("relu(Tensor self) -> Tensor");
     m.def("relu_(Tensor(a!) self) -> Tensor(a!)");
-    m.def("softmax_(Tensor self, int dim, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)");
+    m.def("_softmax(Tensor self, int dim, bool half_to_float) -> Tensor");
+    m.def("_softmax.out(Tensor self, int dim, bool half_to_float, *, Tensor(a!) out) -> Tensor(a!)");
+    m.def("softmax.int(Tensor self, int dim, ScalarType? dtype=None) -> Tensor");
     m.def("addmm(Tensor self, Tensor mat1, Tensor mat2, Scalar beta=1, Scalar alpha=1) -> Tensor");
     m.def("t(Tensor self) -> Tensor");
     m.def("convolution(Tensor input, Tensor weight, Tensor? bias, SymInt[] stride, SymInt[] padding, SymInt[] dilation, bool transposed, SymInt[] output_padding, SymInt groups) -> Tensor");
@@ -83,7 +92,9 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("mul.Tensor", pim::mul);
     m.impl("relu", pim::relu);
     m.impl("relu_", pim::relu_);
-    m.impl("_softmax.out", pim::softmax_);
+    m.impl("_softmax", pim::_softmax_impl);
+    m.impl("_softmax.out", pim::softmax_out_impl);
+    m.impl("softmax.int", pim::softmax_int_impl);
     m.impl("addmm", pim::addmm);
     m.impl("t", pim::t);
     m.impl("convolution_overrideable", pim::convolution);
@@ -107,7 +118,9 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("add.out", &pim::add, "PIM add implementation");
     m.def("relu", &pim::relu, "PIM relu implementation");
     m.def("relu_", &pim::relu_, "PIM relu inplace implementation");
-    m.def("_softmax.out", &pim::softmax_, "PIM softmax implementation");
+    m.def("_softmax",    &pim::_softmax_impl,    "PIM softmax implementation");
+    m.def("_softmax.out", &pim::softmax_out_impl, "PIM softmax out implementation");
+    m.def("softmax.int", &pim::softmax_int_impl, "PIM softmax int implementation");
     m.def("addmm", &pim::addmm, "PIM addmm implementation");
     m.def("t", &pim::t, "PIM t (transpose) implementation");
     m.def("convolution_overrideable", &pim::convolution, "PIM convolution temporary implementation");
