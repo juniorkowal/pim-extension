@@ -17,6 +17,7 @@ namespace pim {
 
 at::Tensor mm(const at::Tensor& self, const at::Tensor& mat2);
 at::Tensor& add(const at::Tensor& self, const at::Tensor& other, const c10::Scalar& alpha, at::Tensor& out);
+at::Tensor& sub(const at::Tensor& self, const at::Tensor& other, const c10::Scalar& alpha, at::Tensor& out);
 at::Tensor relu(const at::Tensor& self);
 at::Tensor& relu_(at::Tensor& self);
 at::Tensor addmm(const at::Tensor& self,
@@ -74,6 +75,7 @@ at::Tensor pim_copy_from_and_resize(const at::Tensor& self, const at::Tensor& ds
 
 TORCH_LIBRARY(torch_pim, m) {
     m.def("add(Tensor self, Tensor other, Scalar alpha, Tensor(a!) out) -> Tensor(a!)");
+    m.def("sub(Tensor self, Tensor other, Scalar alpha, Tensor(a!) out) -> Tensor(a!)");
     m.def("mm(Tensor self, Tensor mat2) -> Tensor");
     m.def("mul(Tensor self, Tensor other) -> Tensor");
     m.def("relu(Tensor self) -> Tensor");
@@ -88,6 +90,7 @@ TORCH_LIBRARY(torch_pim, m) {
 
 TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("add.out", pim::add);
+    m.impl("sub.out", pim::sub);
     m.impl("mm", pim::mm);
     m.impl("mul.Tensor", pim::mul);
     m.impl("relu", pim::relu);
@@ -116,6 +119,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("mm", &pim::mm, "PIM mm implementation");
     m.def("mul", &pim::mul, "PIM mul implementation");
     m.def("add.out", &pim::add, "PIM add implementation");
+    m.def("sub.out", &pim::sub, "PIM sub implementation");
     m.def("relu", &pim::relu, "PIM relu implementation");
     m.def("relu_", &pim::relu_, "PIM relu inplace implementation");
     m.def("_softmax",    &pim::_softmax_impl,    "PIM softmax implementation");
