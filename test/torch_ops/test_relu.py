@@ -29,8 +29,8 @@ def test_relu():
         F.relu(input_cpu, inplace=True)
         F.relu(input_pim, inplace=True)
         input_pim = input_pim.cpu()
-        assert torch.allclose(output_cpu, input_pim)
-        assert torch.allclose(input_cpu, input_pim)
+        assert torch.allclose(output_cpu, input_pim) == True
+        assert torch.allclose(input_cpu, input_pim) == True
 
 # https://github.com/Cambricon/torch_mlu/blob/r2.4_develop/test/torch_ops/test_relu.py
 # def test_relu_permute():
@@ -84,16 +84,16 @@ def test_relu_channels_last():
         input_cpu = copy.deepcopy(input_)
         output_pim = F.relu(input_.upmem())
         output_pim = output_pim.cpu()
-        assert torch.allclose(output_cpu, output_pim)
-        assert torch.allclose(input_cpu, input_)
+        assert torch.allclose(output_cpu, output_pim) == True
+        assert torch.allclose(input_cpu, input_) == True
 
         input_cpu = copy.deepcopy(input_).to(memory_format=torch.channels_last)
         input_pim = input_.upmem()  # test inplace operation
         F.relu(input_cpu, inplace=True)
         F.relu(input_pim, inplace=True)
         input_pim = input_pim.cpu()
-        assert torch.allclose(output_cpu, input_pim)
-        assert torch.allclose(input_cpu, input_pim)
+        assert torch.allclose(output_cpu, input_pim) == True
+        assert torch.allclose(input_cpu, input_pim) == True
 
 def test_relu_boundary_value():
     for number in [0, 0.0001, -0.0001, 999999999]:
@@ -110,5 +110,5 @@ def test_relu_boundary_value():
         F.relu(input_cpu, inplace=True)
         F.relu(input_pim, inplace=True)
         input_pim = input_pim.cpu()
-        assert torch.allclose(output_cpu, input_pim)
-        assert torch.allclose(input_cpu, input_pim)
+        assert torch.allclose(output_cpu, input_pim) == True
+        assert torch.allclose(input_cpu, input_pim) == True
