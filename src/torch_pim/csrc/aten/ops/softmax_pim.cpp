@@ -35,11 +35,12 @@ at::Tensor& softmax_out_impl(
     float* output_ptr = contiguous_output.data_ptr<float>();
 
     show_info("Using softmax pimblas kernel ...");
-    for (int64_t i = 0; i < outer_size; ++i) {
-        const float* slice_in = input_ptr + i * dim_size;
-        float* slice_out = output_ptr + i * dim_size;
-        softmax(slice_in, slice_out, dim_size);
-    }
+    // for (int64_t i = 0; i < outer_size; ++i) {
+    //     const float* slice_in = input_ptr + i * dim_size;
+    //     float* slice_out = output_ptr + i * dim_size;
+    //     softmax(slice_in, slice_out, dim_size);
+    // }
+    softmax(contiguous_input.data_ptr<float>(), contiguous_output.data_ptr<float>(), contiguous_input.numel());
     show_info("softmax pimblas success ...");
 
     if (!out.is_contiguous(memory_format)) {
