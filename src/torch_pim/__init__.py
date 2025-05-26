@@ -33,8 +33,8 @@ torch.ops.load_library(lib_path[0])
 torch.utils.backend_registration.rename_privateuse1_backend("upmem")
 torch._register_device_module("upmem", pim)
 torch.utils.generate_methods_for_privateuse1_backend(
-    # for_tensor=False, for_module=True, for_storage=False,
-    # unsupported_dtype=unsupported_dtype)
+    for_tensor=True, for_module=True, for_storage=True,
+    # unsupported_dtype=unsupported_dtype
     )
 
 

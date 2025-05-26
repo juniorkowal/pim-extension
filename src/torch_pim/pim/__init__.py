@@ -13,7 +13,7 @@ def device_count():
     return 1  # one 'upmem' device
 
 def current_device():
-    return 'upmem'  # default device index ?
+    return 0  # default device index ?
 
 def get_device_name(device=None):
     return "upmem"
